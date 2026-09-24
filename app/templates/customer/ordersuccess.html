@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/productdetail.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+    <header class="header">
+        <!-- LEFT -->
+        <div class="header-left">
+            <!-- MOBILE MENU BUTTON -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar navigation" aria-expanded="false"
+                aria-controls="sidebar">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <!-- LOGO -->
+            <a href="{{ url_for('shop.shop_page') }}" class="logo">
+                <img src="logo4.jpeg" alt="Shop logo">
+            </a>
+
+            <!-- NAVLINKS FOR DESKTOP -->
+            <nav class="nav-links">
+                <a href="{{ url_for('customer.shop') }}">Shop</a>
+            </nav>
+        </div>
+
+        <!-- HEADER ACTIONS -->
+        <div class="header-actions">
+            <a href="{{ url_for('customer.cart') }}" class="icon-btn">Cart</a>
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    {{ user_initials }}
+                </button>
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="{{ url_for('customer.orders') }}">Orders</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR ONLY FOR MOBILE -->
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('customer.shop') }}">Shop</a>
+            <a href="{{ url_for('customer.cart') }}" class="active">Cart</a>
+            <a href="{{ url_for('customer.account') }}">Account</a>
+        </nav>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+    <!-- MAIN CONTENT -->
+    <main class="thank-you-page">
+        <div class="thank-you-container">
+            <div class="thank-you-message">
+                <h1>Thank You for Your Order!</h1>
+                <p>Your order has been successfully placed and payment has been processed.</p>
+            </div>
+
+            <!-- ORDER DETAILS -->
+            <section class="order-details">
+                <h2>Order Summary</h2>
+                <p><strong>Order Number:</strong> {{ order.id }}</p>
+                <p><strong>Total:</strong> ${{ "%.2f"|format(order.total) }}</p>
+
+                <div class="order-items">
+                    <h3>Items:</h3>
+                    <ul>
+                        {% for item in order.items %}
+                        <li>
+                            <span class="item-name">{{ item.product.name }}</span>
+                            <span class="item-qty">x{{ item.quantity }}</span>
+                            <span class="item-subtotal">${{ "%.2f"|format(item.subtotal) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+
+            <div class="thank-you-actions">
+                <a href="/products" class="btn primary">Continue Shopping</a>
+                <a href="/orders/{{ order.id }}" class="btn secondary">View Order Details</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- STYLING -->
+    <style>
+        .thank-you-page {
+            min-height: 90vh;
+            /* Prevent blank space at bottom */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'Arial', sans-serif;
+        }
+
+        .thank-you-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .thank-you-message h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .thank-you-message p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .order-details h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .order-details p {
+            margin: 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .order-items ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+        }
+
+        .order-items li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .order-items .item-name {
+            flex: 2;
+            text-align: left;
+        }
+
+        .order-items .item-qty,
+        .order-items .item-subtotal {
+            flex: 1;
+            text-align: right;
+        }
+
+        .thank-you-actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn.secondary {
+            background: var(--section-body-dark);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn.secondary:hover {
+            background: var(--section-body-dark);
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='styles/productdetail.js') }}"></script>
+</body>
+
+</html>

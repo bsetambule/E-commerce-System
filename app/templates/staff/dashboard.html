@@ -1,0 +1,15 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+<h1>Staff Dashboard</h1>
+
+<p>Total Orders: {{ total_orders }}</p>
+<p>Pending: {{ pending_orders }}</p>
+
+<h3>Recent Orders</h3>
+
+{% for o in orders %}
+<p>{{ o.id }} - {{ o.status }}</p>
+{% endfor %}
+
+{% endblock %}

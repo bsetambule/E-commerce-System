@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Manager Edit User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('systemmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('systemmanager.users') }}" class="active">Users</a>
+            <a href="{{ url_for('systemmanager.stores') }}">Stores</a>
+            <a href="{{ url_for('systemmanager.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <h1>Edit User Account</h1>
+            </header>
+
+            <!-- FORM -->
+            <div class="admin-card">
+                <h3>Account Details</h3>
+                <br>
+                <form id="edituserForm" method="POST"
+                    action="{{ url_for('systemmanager.update_user', user_id=user.id) }}">
+
+                    <!-- NAME -->
+                    <input type="text" name="firstName"
+                        value="{{ user.staff_profile.first_name if user.staff_profile else user.courier_profile.first_name }}"
+                        required>
+
+                    <input type="text" name="lastName"
+                        value="{{ user.staff_profile.last_name if user.staff_profile else user.courier_profile.last_name }}"
+                        required>
+
+                    <!-- EMAIL -->
+                    <input type="email" name="email" value="{{ user.email }}" required>
+
+                    <!-- PHONE -->
+                    <div class="phone-group">
+                        <select name="countryCode" required>
+                            <option value="+267" {% if user.phone_number and user.phone_number.startswith('+267')
+                                %}selected{% endif %}>
+                                🇧🇼 +267
+                            </option>
+                        </select>
+
+                        <input type="tel" name="phoneNumber"
+                            value="{{ user.phone_number[4:] if user.phone_number else '' }}" required minlength="8"
+                            maxlength="8" pattern="7[0-9]{7}">
+
+                        <input type="hidden" name="phone" id="fullPhone" value="{{ user.phone_number }}">
+                    </div>
+
+                    <!-- ROLE -->
+                    <select name="role" required>
+                        {% set current_role = user.roles[0].name if user.roles else None %}
+
+                        <option value="PRODUCTMANAGER" {% if current_role=="PRODUCTMANAGER" %}selected{% endif %}>
+                            Product Manager</option>
+
+                        <option value="STOREMANAGER" {% if current_role=="STOREMANAGER" %}selected{% endif %}>Store
+                            Manager</option>
+                        <option value="DELIVERYMANAGER" {% if current_role=="DELIVERYMANAGER" %}selected{% endif %}>
+                            Delivery Manager</option>
+
+                        <option value="DELIVERYSUPERVISOR" {% if current_role=="DELIVERYSUPERVISOR" %}selected{% endif
+                            %}>
+                            Delivery Supervisor</option>
+
+                        <option value="STAFF" {% if current_role=="STAFF" %}selected{% endif %}>Staff</option>
+                        <option value="COURIER" {% if current_role=="COURIER" %}selected{% endif %}>Courier</option>
+                    </select>
+
+                    <!-- BRANCH (ONLY IF APPLICABLE) -->
+                    <select name="branch_id">
+                        <option value="">--Optional Branch--</option>
+                        {% for branch in branches %}
+                        <option value="{{ branch.id }}" {% if user.branch_staff and
+                            user.branch_staff[0].branch_id==branch.id %}selected{% endif %}>
+                            {{ branch.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- ACTIONS -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="edituserForm" data-message="Update this user account?">
+                            Update Account
+                        </button>
+                        <button type="button" class="btn danger" onclick="window.history.back()">Cancel</button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

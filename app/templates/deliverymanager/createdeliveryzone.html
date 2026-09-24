@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Manager Create Zone</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('deliverymanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('deliverymanager.couriers') }}">Couriers</a>
+            <a href="{{ url_for('deliverymanager.zones') }}" class="active">Zones</a>
+            <a href="{{ url_for('deliverymanager.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- PAGE HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>Create Delivery Zone</h1>
+                    <p class="sub">
+                        Configure delivery settings for your branch
+                    </p>
+                </div>
+            </header>
+
+            <!-- FORM CARD -->
+            <div class="storemanager-card">
+
+                <form id="createzoneForm" method="POST" action="{{ url_for('deliverymanager.create_delivery_zone') }}">
+
+                    <!-- NAME -->
+                    <div class="form-group">
+                        <label>Zone Name</label>
+                        <input type="text" name="name" maxlength="100" required placeholder="e.g. North Bristol">
+                    </div>
+
+                    <!-- TOWN -->
+                    <div class="form-group">
+                        <label>Town</label>
+                        <input type="text" name="town" maxlength="100" placeholder="e.g. Filton">
+                    </div>
+
+                    <!-- CITY -->
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" name="city" maxlength="100" placeholder="e.g. Bristol">
+                    </div>
+
+                    <!-- COVERED AREAS -->
+                    <div class="form-group">
+                        <label>Covered Areas</label>
+                        <small>Enter one area per line (used for delivery matching)</small>
+
+                        <textarea name="covered_areas_raw" id="covered_areas" rows="6"
+                            placeholder="Block 6&#10;Phase 2&#10;Gerald" required></textarea>
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="form-actions">
+                        <a href="{{ url_for('deliverymanager.zones') }}" class="btn outline">Cancel</a>
+                        <button type="submit" class="btn primary">Create Zone</button>
+                    </div>
+
+                </form>
+
+
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        document.querySelector("form").addEventListener(
+            "submit",
+            function () {
+
+                const coveredAreasContainer =
+                    document.getElementById(
+                        "hidden-covered-areas"
+                    );
+
+                const postcodesContainer =
+                    document.getElementById(
+                        "hidden-postcodes"
+                    );
+
+                coveredAreasContainer.innerHTML = "";
+                postcodesContainer.innerHTML = "";
+
+                document
+                    .getElementById("covered_areas")
+                    .value
+                    .split("\n")
+                    .filter(v => v.trim())
+                    .forEach(area => {
+
+                        coveredAreasContainer.innerHTML += `
+                    <input
+                        type="hidden"
+                        name="covered_areas"
+                        value="${area.trim()}"
+                    >
+                `;
+
+                    });
+
+                document
+                    .getElementById("postcode_prefixes")
+                    .value
+                    .split("\n")
+                    .filter(v => v.trim())
+                    .forEach(code => {
+
+                        postcodesContainer.innerHTML += `
+                    <input
+                        type="hidden"
+                        name="postcode_prefixes"
+                        value="${code.trim()}"
+                    >
+                `;
+
+                    });
+
+            }
+        );
+
+    </script>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

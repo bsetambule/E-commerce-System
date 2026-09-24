@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Courier Panel - SuperStore</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+
+<nav>
+    <a href="{{ url_for('courier.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('courier.my_deliveries') }}">My Deliveries</a>
+</nav>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for c, m in messages %}
+                <div class="alert {{ c }}">{{ m }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+</div>
+
+</body>
+</html>

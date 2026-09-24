@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<h2>Products</h2>
+
+{% for item in products_with_price %}
+
+<div class="product-card">
+    <h3>{{ item.product.name }}</h3>
+    <p>Price: {{ item.final_price }}</p>
+
+    <a href="{{ url_for('products.product_detail', product_id=item.product.id) }}">
+        View
+    </a>
+</div>
+
+{% endfor %}
+
+{% endblock %}

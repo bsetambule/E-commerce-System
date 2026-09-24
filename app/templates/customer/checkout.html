@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/productdetail.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <header class="header">
+
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false"
+                aria-controls="sidebar"><span class="bar"></span><span class="bar"></span><span
+                    class="bar"></span></button>
+            <a href="{{ url_for('customer.shop') }}" class="logo"><img
+                    src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="logo"></a>
+        </div>
+
+
+        <div class="header-actions">
+
+            <a href="{{ url_for('customer.cart') }}" class="icon-btn">Cart</a>
+
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    {{ user_initials }}
+                </button>
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="{{ url_for('customer.orders') }}">Orders</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('customer.shop') }}">Shop</a>
+            <a href="{{ url_for('customer.cart') }}" class="active">Cart</a>
+            <a href="{{ url_for('customer.account') }}">Account</a>
+        </nav>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="checkout-content">
+
+        <form id="checkout-form" action="{{ url_for('checkout.create_checkout') }}" method="POST" class="checkout-form"
+            novalidate>
+
+
+
+            <header class="checkout-header">
+                <h2>Checkout</h2>
+            </header>
+
+            <div class="checkout-layout">
+
+                <!-- LEFT -->
+                <div class="checkout-left">
+
+                    <!-- CONTACT -->
+                    <section class="card">
+                        <h2>Contact</h2>
+
+                        <div class="form-grid">
+                            <input type="text" name="firstName" placeholder="First name" required>
+                            <input type="text" name="lastName" placeholder="Last name" required>
+                            <input type="email" name="email" placeholder="Email address" required>
+
+                            <div class="phone-group">
+                                <select id="countryCode" name="countryCode">
+                                    <option value="+267">🇧🇼 +267</option>
+                                </select>
+
+                                <input type="tel" id="phoneInput" name="phoneInput" placeholder="Phone number" required>
+                                <input type="hidden" name="phone" id="fullPhone">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- FULFILLMENT -->
+                    <section class="card">
+                        <h2>Fulfillment</h2>
+
+                        <label>Order Method</label>
+                        <select id="order-method" name="order_method">
+                            {% if supports_delivery %}<option value="delivery" selected>Delivery</option>{% endif %}
+                            {% if supports_pickup %}<option value="pickup" {% if not supports_delivery %}selected{%
+                                endif %}>Pickup</option>{% endif %}
+                        </select>
+
+                        {% if supports_delivery %}
+                        <div id="delivery-details" class="details-grid">
+                            <h3>Delivery Address</h3>
+                            <input name="area" placeholder="Area">
+                            <input name="plot_number" placeholder="House number">
+                            <textarea name="delivery_notes" placeholder="Delivery notes (optional)"></textarea>
+
+                            {% if delivery_zone %}
+                            <p class="hint">Zone: {{ delivery_zone.delivery_zone.name }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if supports_pickup %}
+                        <div id="pickup-details" class="details-grid">
+                            <h3>Pickup</h3>
+                            <p class="hint">{{ branch.name }} - {{ branch.town }}</p>
+                            <textarea name="pickup_notes" placeholder="Pickup notes (optional)"></textarea>
+                        </div>
+                        {% endif %}
+                    </section>
+
+                </div>
+
+                <!-- RIGHT -->
+                <aside class="card checkout-summary" data-subtotal="{{ subtotal }}" data-delivery="{{ shipping_fee }}"
+                    data-total="{{ total }}">
+
+                    <h2>Summary</h2>
+
+                    <div class="summary-row">
+                        <span>Items</span>
+                        <span>{{ cart.items|length }}</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>£{{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Delivery</span>
+                        <span id="delivery-value">£{{ "%.2f"|format(shipping_fee) }}</span>
+                    </div>
+
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="total-value">£{{ "%.2f"|format(total) }}</span>
+                    </div>
+
+                    <button id="checkout-submit" type="submit" class="btn-primary">
+                        Place Order
+                    </button>
+
+                </aside>
+
+            </div>
+        </form>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">SetOhil Store</div>
+            <p class="footer-copy">© 2026 All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts/productdetail.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/checkout.js') }}"></script>
+</body>
+
+</html>

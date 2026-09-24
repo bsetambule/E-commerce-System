@@ -1,0 +1,48 @@
+{% extends "base/store_manager_base.html" %}
+
+{% block content %}
+<h1>Branch Products</h1>
+
+<table>
+    <tr>
+        <th>Product ID</th>
+        <th>Status</th>
+        <th>Price Override</th>
+        <th>Availability</th>
+        <th>Action</th>
+    </tr>
+
+    {% for p in products %}
+    <tr>
+        <td>{{ p.product_id }}</td>
+
+        <td>
+            {% if p.is_available %}
+                Active
+            {% else %}
+                Hidden
+            {% endif %}
+        </td>
+
+        <td>{{ p.price_override or "Default" }}</td>
+
+        <td>
+            {% if p.is_available %}
+                Available
+            {% else %}
+                Unavailable
+            {% endif %}
+        </td>
+
+        <td>
+            <form method="POST" action="{{ url_for('store_manager.toggle_product', id=p.id) }}">
+                <button type="submit">
+                    Toggle
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

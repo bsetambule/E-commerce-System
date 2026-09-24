@@ -1,0 +1,39 @@
+{% extends "base/courier_base.html" %}
+
+{% block content %}
+
+<h1>Courier Dashboard</h1>
+
+<div class="grid">
+    <div>Assigned: {{ assigned|length }}</div>
+    <div>In Transit: {{ in_transit|length }}</div>
+    <div>Completed: {{ completed|length }}</div>
+</div>
+
+<h2>Recent Deliveries</h2>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Order</th>
+        <th>Status</th>
+        <th>OTP</th>
+    </tr>
+
+    {% for d in deliveries %}
+    <tr>
+        <td>{{ d.id }}</td>
+        <td>{{ d.order_id }}</td>
+        <td>{{ d.status }}</td>
+        <td>
+            {% if d.status == "delivered" %}
+                ✔ Completed
+            {% else %}
+                Pending
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

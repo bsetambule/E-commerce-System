@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Manager View Staff</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('storemanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('storemanager.list_users') }}" class="active">Users</a>
+            <a href="{{ url_for('storemanager.list_products') }}">Products</a>
+            <a href="{{ url_for('storemanager.list_orders') }}">Orders</a>
+            <a href="{{ url_for('storemanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>{{ staff.first_name }} {{ staff.last_name }}</h1>
+                    <p class="sub">{{ staff.user.email }}</p>
+                </div>
+                <span class="badge {{ 'active' if user.is_active else 'deactivated' }}">
+                    {{ 'Active' if user.is_active else 'Deactivated' }}
+                </span>
+            </header>
+
+
+
+            <!-- STAFF DETAILS -->
+            <div class="storemanager-card">
+                <h3>Personal Details</h3>
+
+                <p><strong>Name:</strong> {{ staff.first_name }} {{ staff.last_name }}</p>
+                <p><strong>Email:</strong> {{ staff.user.email }}</p>
+                <p><strong>Phone:</strong> {{ staff.user.phone_number }}</p>
+
+
+            </div>
+
+            <!-- STORE DETAILS -->
+            <div class="storemanager-card">
+                <h3>Store Assignment</h3>
+
+                {% if assignments %}
+                {% for a in assignments %}
+                <div class="store-block">
+                    <p><strong>Store:</strong> {{ a.branch.name }}</p>
+                    <p><strong>Address:</strong> {{ a.branch.address }}</p>
+                    <p><strong>City:</strong> {{ a.branch.city }}</p>
+                    <p><strong>Role:</strong> {{ a.role }}</p>
+                </div>
+
+
+                {% endfor %}
+                {% else %}
+                <p>No store assigned.</p>
+                {% endif %}
+            </div>
+
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

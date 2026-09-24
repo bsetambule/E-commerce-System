@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Coverage - Product Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- FLASH -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="Logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('productmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('productmanager.products') }}">Products</a>
+            <a href="{{ url_for('productmanager.stores') }}" class="active">Stores</a>
+            <a href="{{ url_for('productmanager.productperformance') }}">Product Performance</a>
+            <a href="{{ url_for('productmanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>{{ store.name }}</h1>
+                    <p class="sub">{{ store.city }} • Product Coverage View</p>
+                </div>
+
+                <!-- Product-focused badge -->
+                <span class="badge">
+                    Coverage: {{ store.coverage_percentage or 0 }}%
+                </span>
+            </header>
+
+            <!-- STORE OVERVIEW -->
+            <div class="admin-card">
+                <h3>Store Overview</h3>
+
+                <p><strong>Address:</strong> {% set location_parts = [
+                    store.plot_number,
+                    store.area,
+                    store.town,
+                    store.city,
+                    store.country
+                    ] %}
+
+                    {{ location_parts | select | join(', ') }}</p>
+                <p><strong>City:</strong> {{ store.city or '-' }}</p>
+
+                <p><strong>Created:</strong>
+                    {{ store.created_at.strftime('%Y-%m-%d') if store.created_at else '-' }}
+                </p>
+            </div>
+
+            <!-- PRODUCT COVERAGE (KEY SECTION) -->
+            <div class="admin-card">
+                <h3>Product Coverage</h3>
+
+                <p><strong>Total Catalog Products:</strong> {{ stats.total_products }}</p>
+
+                <p><strong>Available in Store:</strong> {{ stats.available_products }}</p>
+
+                <p><strong>Missing Products:</strong>
+                    <span class="badge danger">{{ stats.missing_products }}</span>
+                </p>
+
+                <p><strong>Low Stock Products:</strong>
+                    <span class="badge warning">{{ stats.low_stock_products }}</span>
+                </p>
+            </div>
+
+            <!-- TOP ISSUES -->
+            <div class="admin-card">
+                <h3>Catalog Gaps</h3>
+
+                {% if missing_products %}
+                <ul>
+                    {% for product in missing_products %}
+                    <li>{{ product.name }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No missing products </p>
+                {% endif %}
+            </div>
+
+            <!-- TOP PERFORMING PRODUCTS -->
+            <div class="admin-card">
+                <h3>Top Selling Products in This Store</h3>
+
+                {% if top_products %}
+                <ul>
+                    {% for product in top_products %}
+                    <li>
+                        {{ product.name }} — {{ product.sales_count }} sales
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No sales data available.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

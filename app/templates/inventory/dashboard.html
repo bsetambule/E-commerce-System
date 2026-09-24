@@ -1,0 +1,12 @@
+{% extends "base/inventory_base.html" %}
+
+{% block content %}
+<h1>{{ branch.name }} Inventory Dashboard</h1>
+
+<ul>
+    <li>Total Items: {{ total_items }}</li>
+    <li>Low Stock: {{ low_stock }}</li>
+    <li>Reserved: {{ reserved }}</li>
+</ul>
+
+{% endblock %}

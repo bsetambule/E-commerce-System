@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Manager Edit Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('systemmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('systemmanager.users') }}">Users</a>
+            <a href="{{ url_for('systemmanager.stores') }}" class="active">Stores</a>
+            <a href="{{ url_for('systemmanager.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <header class="review-header">
+                <h1>Edit Store</h1>
+            </header>
+
+            <div class="admin-card">
+                <h3>Store Details</h3>
+                <br>
+
+                <form id="editstoreForm" method="POST"
+                    action="{{ url_for('systemmanager.update_store', store_id=store.id) }}">
+
+                    <!-- STORE NAME -->
+                    <input type="text" name="name" value="{{ store.name}}" required>
+
+                    <!-- PHONE -->
+                    <div class="phone-group">
+                        <select name="countryCode" required>
+                            <option>🇧🇼 +267</option>
+                        </select>
+
+                        <input type="tel" name="phone"
+                            value="{{ store.phone_number[-8:] if store.phone_number else ''}}" required minlength="8"
+                            maxlength="8" pattern="7[0-9]{7}">
+                    </div>
+                    <!-- EMAIL -->
+                    <input type="email" name="email" value="{{ store.email or ''}}">
+
+                    <!-- LOCATION -->
+                    <h4>Store Location</h4>
+
+                    <input type="text" name="plot_number" value="{{ store.plot_number or ''}}">
+
+                    <input type="text" name="area" value="{{ store.area or ''}}" required>
+
+                    <input type="text" name="town" value="{{ store.town or ''}}" required>
+
+                    <input type="text" name="city" value="{{ store.city or ''}}" required>
+
+                    <input type="text" name="country" value="{{ store.country or 'Botswana'}}" readonly>
+
+                    <!-- COORDINATES -->
+                    <h4>Map Coordinates</h4>
+
+                    <label>Latitude</label>
+                    <input type="number" id="latitude" name="latitude" value="{{ store.latitude or ''}}">
+
+                    <label>Longitude</label>
+                    <input type="number" id="longitude" name="longitude" value="{{ store.longitude or ''}}">
+
+                    <!-- OPERATING HOURS -->
+                    <h4>Operating Hours</h4>
+
+                    <label>Opening Time</label>
+                    <input type="time" name="opening_time"
+                        value="{{ store.operating_hours['monday']['open'] if store.operating_hours and store.operating_hours.get('monday') else '' }}">
+
+                    <label>Closing Time</label>
+                    <input type="time" name="closing_time"
+                        value="{{ store.operating_hours['monday']['close'] if store.operating_hours and store.operating_hours.get('monday') else '' }}">
+
+                    <!-- STORE SETTINGS -->
+                    <h4>Store Settings</h4>
+
+                    <label>Allows Delivery</label>
+                    <select name="allows_delivery" required>
+                        <option value="" disabled selected>--Select--</option>
+                        <option value="true" {% if store.allows_delivery %}selected{% endif %}>Yes</option>
+                        <option value="false" {% if not store.allows_delivery %}selected{% endif %}>No</option>
+                    </select>
+
+                    <label>Allows Pickup</label>
+                    <select name="allows_pickup" required>
+                        <option value="" disabled selected>--Select--</option>
+                        <option value="true" {% if store.allows_pickup %}selected{% endif %}>Yes</option>
+                        <option value="false" {% if not store.allows_pickup %}selected{% endif %}>No</option>
+                    </select>
+
+                    <!-- ACTIONS -->
+                    <div class="action-buttons">
+
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="editstoreForm" data-message="Update this store?">
+                            Update Store
+                        </button>
+
+                        <button type="button" class="btn danger" onclick="window.history.back()">
+                            Cancel
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

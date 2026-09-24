@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courier Deliveries</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('courier.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('courier.deliveries') }}" class="active">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section id="ordersSection">
+                <div class="card">
+
+                    <!-- HEADER + TABS -->
+                    <div class="page-header">
+                        <h2>Deliveries</h2>
+                        <br>
+                        <div class="tabs">
+
+                            <a href="{{ url_for('courier.deliveries', tab='active') }}"
+                                class="tab-btn {% if current_tab == 'active' %}active{% endif %}">
+                                Active
+                            </a>
+
+                            <a href="{{ url_for('courier.deliveries', tab='completed') }}"
+                                class="tab-btn {% if current_tab == 'completed' %}active{% endif %}">
+                                Completed
+                            </a>
+
+                        </div>
+
+
+                    </div>
+
+                    <br>
+
+                    <!-- SEARCH -->
+                    <input type="text" class="storemanager-search" id="storemanagerOrderSearch"
+                        placeholder="Search delivery by ID or name..."
+                        onkeyup="filterTable('storemanagerOrderSearch', 'storemanagerOrderTable')">
+
+                    <div id="noOrderResultsMessage" class="no-results">
+                        No deliveries found.
+                    </div>
+
+                    <br><br>
+
+                    <!-- TABLE -->
+                    <div class="table-wrapper">
+                        <table id="storemanagerOrderTable" class="storemanager-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Delivery ID</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Address</th>
+                                    <th>Created</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for delivery in deliveries.items %}
+                                <tr>
+
+                                    <!-- DELIVERY ID -->
+                                    <td>
+                                        #{{ delivery.id }}
+                                    </td>
+
+                                    <!-- CUSTOMER -->
+                                    <td>
+                                        {% if delivery.order and delivery.order.user and
+                                        delivery.order.user.customer_profile %}
+                                        {{ delivery.order.user.customer_profile.first_name }}
+                                        {% else %}
+                                        Unknown
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td>
+                                        {% set status = delivery.status.value %}
+
+                                        <span class="badge
+            {% if status == 'DELIVERED' %}success
+            {% elif status == 'CANCELLED' %}danger
+            {% else %}active
+            {% endif %}
+        ">
+                                            {{ status.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+
+                                    <!-- ADDRESS -->
+                                    <td>
+                                        {{ delivery.delivery_address or '-' }}
+                                    </td>
+
+                                    <!-- CREATED -->
+                                    <td>
+                                        {{ delivery.created_at.strftime("%Y-%m-%d %H:%M") }}
+                                    </td>
+
+                                    <!-- ACTION -->
+                                    <td>
+                                        <a class="viewProfileLink"
+                                            href="{{ url_for('courier.deliverydetails', delivery_id=delivery.id) }}">
+                                            View
+                                        </a>
+                                    </td>
+
+                                </tr>
+
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        No deliveries found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="pagination">
+
+                        {% set base_args = {'tab': current_tab} %}
+
+                        {% if deliveries.has_prev %}
+                        <a href="{{ url_for('courier.deliveries', page=deliveries.prev_num, **base_args) }}"
+                            class="page-btn">Prev</a>
+                        {% else %}
+                        <span class="page-btn disabled">Prev</span>
+                        {% endif %}
+
+                        {% for page_num in deliveries.iter_pages(left_edge=2, right_edge=2, left_current=2,
+                        right_current=2) %}
+
+                        {% if page_num %}
+                        {% if page_num == deliveries.page %}
+                        <span class="page-btn active">{{ page_num }}</span>
+                        {% else %}
+                        <a href="{{ url_for('courier.deliveries', page=page_num, **base_args) }}" class="page-btn">
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                        {% else %}
+                        <span class="page-ellipsis">…</span>
+                        {% endif %}
+
+                        {% endfor %}
+
+                        {% if deliveries.has_next %}
+                        <a href="{{ url_for('courier.deliveries', page=deliveries.next_num, **base_args) }}"
+                            class="page-btn">Next</a>
+                        {% else %}
+                        <span class="page-btn disabled">Next</span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

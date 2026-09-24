@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Manager Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('productmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('productmanager.products') }}" class="active">Products</a>
+            <a href="{{ url_for('productmanager.stores') }}">Stores</a>
+            <a href="{{ url_for('productmanager.productperformance') }}">Product Performance</a>
+            <a href="{{ url_for('productmanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section id="productsSection">
+                <div class="card">
+
+                    <!-- HEADER + TABS -->
+                    <div class="page-header">
+                        <h2>Products</h2>
+                        <br>
+                        <div class="tabs">
+
+                            <a href="{{ url_for('productmanager.products', tab='all') }}"
+                                class="tab-btn {% if current_tab == 'all' %}active{% endif %}">
+                                All
+                            </a>
+
+                            <a href="{{ url_for('productmanager.products', tab='available') }}"
+                                class="tab-btn {% if current_tab == 'available' %}active{% endif %}">
+                                Available
+                            </a>
+
+                            <a href="{{ url_for('productmanager.products', tab='draft') }}"
+                                class="tab-btn {% if current_tab == 'draft' %}active{% endif %}">
+                                Draft
+                            </a>
+
+                            <a href="{{ url_for('productmanager.products', tab='deleted') }}"
+                                class="tab-btn {% if current_tab == 'deleted' %}active{% endif %}">
+                                Deleted
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <!-- SEARCH -->
+                    <input type="text" class="storemanager-search" id="storemanagerProductSearch"
+                        placeholder="Search product by ID or name..."
+                        onkeyup="filterTable('storemanagerProductSearch', 'storemanagerProductTable')">
+
+                    <div id="noProductResultsMessage" class="no-results">
+                        No products found.
+                    </div>
+
+                    <br><br>
+
+                    <!-- TABLE -->
+                    <div class="table-wrapper">
+                        <table id="storemanagerProductTable" class="storemanager-table">
+
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for product in products.items %}
+
+                                {% set primary_image = product.primary_image %}
+                                {% set default_variant = product.default_variant %}
+
+                                <tr>
+
+                                    <!-- ID -->
+                                    <td>{{ product.id }}</td>
+
+                                    <!-- IMAGE -->
+                                    <td>
+                                        {% if primary_image %}
+                                        <img src="{{ primary_image.image_url }}" class="table-product-image"
+                                            alt="{{ product.name }}">
+                                        {% else %}
+                                        <div class="table-product-placeholder">
+                                            No Image
+                                        </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- NAME -->
+                                    <td>{{ product.name }}</td>
+
+                                    <!-- CATEGORY -->
+                                    <td>{{ product.category or '-' }}</td>
+
+                                    <!-- PRICE -->
+                                    <td>
+                                        {% if default_variant %}
+                                        £{{ default_variant.selling_price }}
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- STOCK -->
+                                    <td>
+                                        <span class="badge">
+                                            Global Catalog
+                                        </span>
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td>
+                                        {% if product.is_active and not product.is_deleted %}
+                                        <span class="badge success">Active</span>
+
+                                        {% elif product.is_deleted %}
+                                        <span class="badge danger">Deleted</span>
+
+                                        {% else %}
+                                        <span class="badge warning">Inactive</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- ACTION -->
+                                    <td>
+
+                                        <a class="viewProfileLink"
+                                            href="{{ url_for('productmanager.view_product', product_id=product.id) }}">
+                                            View
+                                        </a>
+
+                                        {% if current_tab == 'deleted' %}
+
+                                        <form method="POST"
+                                            action="{{ url_for('productmanager.restore_product', product_id=product.id) }}"
+                                            style="display:inline;">
+
+                                            <button type="submit" class="btn outline">
+                                                Restore
+                                            </button>
+
+                                        </form>
+
+                                        {% else %}
+
+                                        <form method="POST"
+                                            action="{{ url_for('productmanager.delete_product', product_id=product.id) }}"
+                                            style="display:inline;">
+
+                                            <button type="submit" class="btn danger">
+                                                Delete
+                                            </button>
+
+                                        </form>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                                {% else %}
+
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        No products found.
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="pagination">
+
+                        {% set base_args = {'tab': current_tab} %}
+
+                        {% if products.has_prev %}
+                        <a href="{{ url_for('productmanager.products', page=products.prev_num, **base_args) }}"
+                            class="page-btn">
+                            Prev
+                        </a>
+                        {% else %}
+                        <span class="page-btn disabled">Prev</span>
+                        {% endif %}
+
+                        {% for page_num in products.iter_pages(
+                        left_edge=2,
+                        right_edge=2,
+                        left_current=2,
+                        right_current=2
+                        ) %}
+
+                        {% if page_num %}
+                        {% if page_num == products.page %}
+                        <span class="page-btn active">{{ page_num }}</span>
+                        {% else %}
+                        <a href="{{ url_for('productmanager.products', page=page_num, **base_args) }}" class="page-btn">
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                        {% else %}
+                        <span class="page-ellipsis">…</span>
+                        {% endif %}
+
+                        {% endfor %}
+
+                        {% if products.has_next %}
+                        <a href="{{ url_for('productmanager.products', page=products.next_num, **base_args) }}"
+                            class="page-btn">
+                            Next
+                        </a>
+                        {% else %}
+                        <span class="page-btn disabled">Next</span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

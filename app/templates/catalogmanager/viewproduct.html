@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalog Manager View Product</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+             <a href="{{ url_for('catalogmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('catalogmanager.products') }}" class="active">Products</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- PRODUCT DETAILS -->
+            <div class="storemanager-card">
+
+                <div class="product-details-layout">
+
+                    <!-- PRODUCT IMAGE -->
+                    <div class="product-image-section">
+                        <div class="product-image-card">
+                            {% if primary_image %}
+                            <img src="{{ primary_image.image_url }}" alt="{{ product.name }}"
+                                class="product-detail-image">
+                            {% else %}
+                            <div class="product-image-placeholder">
+                                No Image
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- PRODUCT INFO -->
+                    <div class="product-info-section">
+
+                        {% set first_variant = variant_data[0] if variant_data else None %}
+
+                        <!-- BASIC INFO -->
+                        <div class="details-group">
+                            <h3>Product Information</h3>
+
+                            <div class="details-grid">
+
+                                <div class="detail-item">
+                                    <span class="detail-label">Product Name</span>
+                                    <span class="detail-value">{{ product.name }}</span>
+                                </div>
+
+                                <div class="detail-item">
+                                    <span class="detail-label">Category</span>
+                                    <span class="detail-value">{{ product.category or '-' }}</span>
+                                </div>
+
+                                <div class="detail-item">
+                                    <span class="detail-label">SKU</span>
+                                    <span class="detail-value">{{ first_variant.variant.sku if first_variant else '-'
+                                        }}</span>
+                                </div>
+
+                                <div class="detail-item">
+                                    <span class="detail-label">Price</span>
+                                    <span class="detail-value">£{{ first_variant.variant.price if first_variant else '-'
+                                        }}</span>
+                                </div>
+
+                                <div class="detail-item">
+                                    <span class="detail-label">Stock Quantity</span>
+                                    <span class="detail-value">{{ first_variant.stock if first_variant else '-'
+                                        }}</span>
+                                </div>
+
+                                <div class="detail-item">
+                                    <span class="detail-label">Availability</span>
+                                    <span class="detail-value">
+                                        {% if branch_product and branch_product.is_available %}
+                                        <span class="badge success">Available</span>
+                                        {% else %}
+                                        <span class="badge danger">Disabled</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- DESCRIPTION -->
+                        <div class="details-group">
+                            <h3>Description</h3>
+                            <div class="description-box">
+                                {% if product.description %}
+                                {{ product.description }}
+                                {% else %}
+                                No description available.
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <br><br>
+                <!-- ACTION BUTTONS -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('catalogmanager.edit_product', product_id=product.id) }}" class="btn primary">
+                        Edit Product
+                    </a>
+                    <a href="{{ url_for('catalogmanager.products') }}" class="btn outline">
+                        Back to Products
+                    </a>
+                    <form action="{{ url_for('catalogmanager.delete_product', product_id=product.id) }}" method="POST">
+                        <button type="submit" class="btn danger">
+                            Delete Product
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

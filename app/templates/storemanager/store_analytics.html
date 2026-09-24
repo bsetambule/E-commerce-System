@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Manager Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('storemanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('storemanager.list_users') }}">Users</a>
+            <a href="{{ url_for('storemanager.list_products') }}">Products</a>
+            <a href="{{ url_for('storemanager.list_orders') }}">Orders</a>
+            <a href="{{ url_for('storemanager.analytics') }}" class="active">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- PAGE HEADER -->
+            <section class="page-header">
+                <h1>Store Analytics</h1>
+                <p>
+                    Monitor sales, orders, deliveries,
+                    products, and customer activity.
+                </p>
+            </section>
+
+            <!-- FILTER -->
+            <section class="filters">
+                <form method="GET">
+                    <select name="range">
+                        <option value="7" {% if selected_range==7 %}selected{% endif %}>
+                            Last 7 Days
+                        </option>
+                        <option value="30" {% if selected_range==30 %}selected{% endif %}>
+                            Last 30 Days
+                        </option>
+                        <option value="90" {% if selected_range==90 %}selected{% endif %}>
+                            Last 90 Days
+                        </option>
+                    </select>
+                    <button class="btn primary small">
+                        Apply
+                    </button>
+                </form>
+            </section>
+
+
+            <!-- ===================================================== -->
+            <!-- KPI SECTION -->
+            <!-- ===================================================== -->
+
+            <section class="kpi-grid">
+
+                <div class="storemanager-card stat-card">
+                    <span>Total Revenue</span>
+                    <h2>£{{ kpis.revenue }}</h2>
+                    <small>Sales generated</small>
+                </div>
+
+                <div class="storemanager-card stat-card">
+                    <span>Total Orders</span>
+                    <h2>{{ kpis.orders }}</h2>
+                    <small>Orders placed</small>
+                </div>
+
+                <div class="storemanager-card stat-card">
+                    <span>New Customers</span>
+                    <h2>{{ kpis.customers }}</h2>
+                    <small>Recently registered customers</small>
+                </div>
+
+                <div class="storemanager-card stat-card">
+                    <span>Delivery Success</span>
+                    <h2>{{ kpis.delivery_success }}%</h2>
+                    <small>Completed successful deliveries</small>
+                </div>
+
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- SALES OVERVIEW -->
+            <!-- ===================================================== -->
+
+            <section class="analytics-section">
+
+                <div class="analytics-grid-2">
+
+                    <div class="storemanager-card">
+                        <h2>Sales Summary</h2>
+                        <br>
+
+                        <div class="summary-list">
+
+                            <div class="summary-item">
+                                <span>Average Order Value</span>
+                                <strong>£{{ sales.avg_order_value }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span>Completed Orders</span>
+                                <strong>{{ sales.completed_orders }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span>Pending Orders</span>
+                                <strong>{{ sales.pending_orders }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span>Cancelled Orders</span>
+                                <strong>{{ sales.cancelled_orders }}</strong>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- TAB NAVIGATION -->
+            <!-- ===================================================== -->
+
+            <div class="tabs">
+
+                <button class="tab-btn active" onclick="switchTab('products', event)">
+                    Product Analytics
+                </button>
+
+                <button class="tab-btn" onclick="switchTab('orders', event)">
+                    Order Analytics
+                </button>
+
+                <button class="tab-btn" onclick="switchTab('deliveries', event)">
+                    Delivery Analytics
+                </button>
+
+                <button class="tab-btn" onclick="switchTab('customers', event)">
+                    Customer Analytics
+                </button>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- PRODUCT ANALYTICS -->
+            <!-- ===================================================== -->
+
+            <section id="products" class="tab-content active">
+
+                <div class="analytics-grid-2">
+
+                    <!-- TOP PRODUCTS -->
+
+                    <div class="storemanager-card">
+                        <h3>Top Selling Products</h3>
+
+                        <div class="table-wrapper">
+                            <table class="storemanager-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th>Orders</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for p in top_products %}
+                                    <tr>
+                                        <td class="rank">{{ loop.index }}</td>
+                                        <td>{{ p.name }}</td>
+                                        <td>{{ p.orders }}</td>
+                                        <td>£{{ p.revenue }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <br><br>
+
+                    <!-- MOST SEARCHED -->
+                    <div class="storemanager-card">
+                        <h3>Most Searched Products</h3>
+
+                        <div class="table-wrapper">
+                            <table class="storemanager-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th>Searches</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in searched_products %}
+                                    <tr>
+                                        <td class="rank">{{ loop.index }}</td>
+                                        <td>{{ s.name }}</td>
+                                        <td>{{ s.search_count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- ORDER ANALYTICS -->
+            <!-- ===================================================== -->
+
+            <section id="orders" class="tab-content">
+
+                <div class="storemanager-card">
+                    <h3>Order Performance</h3>
+
+                    <div class="table-wrapper">
+                        <table class="storemanager-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Store</th>
+                                    <th>Revenue</th>
+                                    <th>Orders</th>
+                                    <th>Refund %</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for s in top_stores %}
+                                <tr>
+                                    <td class="rank">{{ loop.index }}</td>
+                                    <td>{{ s.name }}</td>
+                                    <td>£{{ s.revenue }}</td>
+                                    <td>{{ s.orders }}</td>
+                                    <td>{{ s.refund_rate }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- DELIVERY ANALYTICS -->
+            <!-- ===================================================== -->
+
+            <section id="deliveries" class="tab-content">
+
+                <div class="storemanager-card">
+                    <h3>Courier Performance</h3>
+
+                    <div class="table-wrapper">
+                        <table class="storemanager-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Courier</th>
+                                    <th>Deliveries</th>
+                                    <th>On-Time %</th>
+                                    <th>Avg Time</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for c in courier_stats %}
+                                <tr>
+                                    <td class="rank">{{ loop.index }}</td>
+                                    <td>{{ c.name }}</td>
+                                    <td>{{ c.deliveries }}</td>
+                                    <td>{{ c.on_time }}%</td>
+                                    <td>{{ c.avg_time }} mins</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- CUSTOMER ANALYTICS -->
+            <!-- ===================================================== -->
+
+            <section id="customers" class="tab-content">
+
+                <div class="storemanager-card">
+                    <h3>Top Customers</h3>
+
+                    <div class="table-wrapper">
+                        <table class="storemanager-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Customer</th>
+                                    <th>Orders</th>
+                                    <th>Total Spend</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for c in top_customers %}
+                                <tr>
+                                    <td class="rank">{{ loop.index }}</td>
+                                    <td>{{ c.name }}</td>
+                                    <td>{{ c.orders }}</td>
+                                    <td>£{{ c.spend }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

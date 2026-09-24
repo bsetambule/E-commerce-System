@@ -1,0 +1,30 @@
+{% extends "inventory/base.html" %}
+
+{% block content %}
+
+<h2>Add Inventory</h2>
+
+<form method="POST">
+
+    <div class="mb-3">
+        <label>Product Variant</label>
+
+        <select name="variant_id" class="form-control">
+            {% for v in variants %}
+                <option value="{{ v.id }}">
+                    {{ v.product.name }} - {{ v.name }}: {{ v.value }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Quantity</label>
+        <input type="number" name="quantity" class="form-control" min="0">
+    </div>
+
+    <button class="btn btn-success">Add Inventory</button>
+
+</form>
+
+{% endblock %}

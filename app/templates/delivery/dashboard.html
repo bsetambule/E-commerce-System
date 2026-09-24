@@ -1,0 +1,13 @@
+{% extends "base/delivery_base.html" %}
+
+{% block content %}
+<h1>{{ branch.name }} Delivery Dashboard</h1>
+
+<ul>
+    <li>Total: {{ total_deliveries }}</li>
+    <li>Pending: {{ pending }}</li>
+    <li>In Transit: {{ in_transit }}</li>
+    <li>Delivered: {{ delivered }}</li>
+</ul>
+
+{% endblock %}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join SetOhil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="auth-logo">
+        <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+    </div>
+
+    <main class="auth-wrapper">
+
+        <div class="auth-container">
+
+            <div class="auth-card">
+
+                <h1 id="signupTitle">Get started</h1>
+                <p id="signupSubtitle">Create your account</p>
+
+                <form id="signupForm" method="POST" action="{{ url_for('auth.register') }}">
+
+                    <input type="hidden" id="roleInput" name="role">
+
+                    <input type="text" name="firstName" placeholder="First name" required>
+                    <input type="text" name="lastName" placeholder="Last name" required>
+
+                    <input type="email" name="email" placeholder="Email address" required>
+
+                     <!-- PHONE -->
+                    <div class="phone-group">
+                        <select name="countryCode" required>
+                            <option>🇧🇼 +267</option>
+                        </select>
+
+                        <input type="tel" name="phone" placeholder="Phone Number" required minlength="8" maxlength="8"
+                            pattern="7[0-9]{7}">
+                    </div>
+
+
+                    <input type="password" name="password" placeholder="Password" required>
+
+                    <select id="location" name="location" required>
+                        <option value="" disabled selected>
+                            --Location--
+                        </option>
+
+                        {% for location in locations %}
+                        <option value="{{ location }}">
+                            {{ location }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="btn primary">Continue</button>
+
+                </form>
+
+                <p style="margin-top:1rem;">
+                    Already have an account? <a href="{{ url_for('auth.login') }}">Login</a>
+                </p>
+
+            </div>
+        </div>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+</body>
+
+</html>

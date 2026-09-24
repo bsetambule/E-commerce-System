@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Manager Store View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('systemmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('systemmanager.users') }}">Users</a>
+            <a href="{{ url_for('systemmanager.stores') }}" class="active">Stores</a>
+            <a href="{{ url_for('systemmanager.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>{{ store.name }}</h1>
+
+                    <p class="sub">
+                        {% set location_parts = [
+                        store.plot_number,
+                        store.area,
+                        store.town,
+                        store.city,
+                        store.country
+                        ] %}
+
+                        {{ location_parts | select | join(', ') }}
+                    </p>
+                </div>
+
+                <span class="badge {{ 'active' if store.is_active else 'deactivated' }}">
+                    {{ 'Active' if store.is_active else 'Deactivated' }}
+                </span>
+            </header>
+
+            <!-- ACTIONS -->
+            <div class="admin-card">
+                <div class="action-buttons">
+
+                    <form id="toggleStoreForm" method="POST"
+                        action="{{ url_for('systemmanager.toggle_store_status', store_id=store.id) }}">
+
+                        {% if store.is_active %}
+                        <button type="button" class="btn danger" data-confirm data-action="submit-form"
+                            data-form="toggleStoreForm" data-message="Deactivate this store?">
+                            Deactivate
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="toggleStoreForm" data-message="Activate this store?">
+                            Activate
+                        </button>
+                        {% endif %}
+
+                        <input type="hidden" name="action"
+                            value="{% if store.is_active %}deactivate{% else %}activate{% endif %}">
+                    </form>
+
+                    <a class="btn small outline" href="{{ url_for('systemmanager.update_store', store_id=store.id) }}">
+                        Edit Store
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- STORE DETAILS -->
+            <div class="admin-card">
+                <h3>Store Details</h3>
+
+                <div class="info-grid">
+
+                    <div class="info-item">
+                        <span class="label">Phone</span>
+                        <span class="value">
+                            {{ store.phone_number or '-' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Email</span>
+                        <span class="value">
+                            {{ store.email or '-' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Country</span>
+                        <span class="value">
+                            {{ store.country or '-' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Postal Code</span>
+                        <span class="value">
+                            {{ store.postal_code or '-' }}
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- STORE MANAGER -->
+            <div class="admin-card">
+                <h3>Store Manager</h3>
+
+                {% if manager and manager.staff_profile %}
+
+                <div class="info-grid">
+
+                    <div class="info-item">
+                        <span class="label">Full Name</span>
+                        <span class="value">
+                            {{ manager.staff_profile.first_name }}
+                            {{ manager.staff_profile.last_name }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Email</span>
+                        <span class="value">{{ manager.email }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Phone</span>
+                        <span class="value">
+                            {{ manager.phone_number or '-' }}
+                        </span>
+                    </div>
+
+                </div>
+
+                {% else %}
+                <p>No store manager assigned.</p>
+                {% endif %}
+            </div>
+
+            <!-- LOCATION -->
+            <div class="admin-card">
+                <h3>Location</h3>
+
+                <div class="info-grid">
+
+                    <div class="info-item full">
+                        <span class="label">Full Address</span>
+                        <span class="value">
+
+                            {% set address_parts = [
+                            store.plot_number,
+                            store.area,
+                            store.town,
+                            store.city,
+                            store.country
+                            ] %}
+
+                            {{ address_parts | select | join(', ') }}
+
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Latitude</span>
+                        <span class="value">
+                            {{ store.latitude or '-' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Longitude</span>
+                        <span class="value">
+                            {{ store.longitude or '-' }}
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- STORE SETTINGS -->
+            <div class="admin-card">
+                <h3>Store Settings</h3>
+
+                <div class="info-grid">
+
+                    <div class="info-item">
+                        <span class="label">Delivery</span>
+                        <span class="value">
+                            {{ 'Enabled' if store.allows_delivery else 'Disabled' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Pickup</span>
+                        <span class="value">
+                            {{ 'Enabled' if store.allows_pickup else 'Disabled' }}
+                        </span>
+                    </div>
+
+                </div>
+
+                {% if store.operating_hours %}
+                <div class="hours-section">
+
+                    <h4>Operating Hours</h4>
+
+                    <div class="hours-grid">
+
+                        {% for day, hours in store.operating_hours.items() %}
+                        <div class="hour-row">
+                            <span class="day">
+                                {{ day.capitalize() }}
+                            </span>
+
+                            <span class="time">
+                                {{ hours.open }} - {{ hours.close }}
+                            </span>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- PERFORMANCE -->
+            <div class="admin-card">
+                <h3>Performance</h3>
+
+                <div class="stats-grid">
+
+                    <div class="stat-box">
+                        <h2>{{ store.orders|length }}</h2>
+                        <span>Total Orders</span>
+                    </div>
+
+                    <div class="stat-box">
+                        <h2>{{ store.branch_products|length }}</h2>
+                        <span>Products</span>
+                    </div>
+
+                    <div class="stat-box">
+                        <h2>{{ store.staff_members|length }}</h2>
+                        <span>Staff Members</span>
+                    </div>
+
+                </div>
+
+                <br>
+                <div class="created-date">
+                    Created:
+                    {{ store.created_at.strftime('%Y-%m-%d') if store.created_at else '-' }}
+                </div>
+            </div>
+
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

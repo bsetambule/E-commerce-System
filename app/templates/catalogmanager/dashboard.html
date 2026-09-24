@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalog Manager Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('catalogmanager.dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('catalogmanager.products') }}">Products</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+
+    </aside>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HERO -->
+            <section class="hero">
+                <h1>
+                    Hello,
+                    {% if staff %}
+                    {{ staff.first_name }} {{ staff.last_name }}
+                    {% else %}
+                    Manager
+                    {% endif %}
+                </h1>
+                <p>Manage store performance.</p>
+            </section>
+
+            <!-- KPI GRID -->
+            <section class="storemanager-kpis">
+
+                <div class="card kpi">
+                    <span>Total Products</span>
+                    <h2>{{ products_count }}</h2>
+                    <small>Products in system branch</small>
+                </div>                
+
+                <div class="card kpi alert">
+                    <span>Draft Products</span>
+                    <h2>{{ drafts_count }}</h2>
+                    <small>Incomplete products</small>
+                </div>
+
+                <div class="card kpi alert">
+                    <span>Deleted Products</span>
+                    <h2>{{ deleted_count }}</h2>
+                    <small>Deleted products</small>
+                </div>
+
+            </section>
+
+            <!-- GRID -->
+            <section class="storemanager-grid-layout">
+
+                <div class="storemanager-main">
+
+                    <!-- QUICK ACTIONS -->
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+
+                        <div class="storemanager-actions">
+                            <a href="{{ url_for('catalogmanager.create_product') }}" class="btn small primary">Add
+                                Product</a>
+                            <a href="{{ url_for('catalogmanager.bulk_create_products') }}" class="btn small primary">Bulk
+                                Add</a>
+                            <a href="{{ url_for('catalogmanager.products') }}"
+                                class="btn small outline">Products</a>
+                        </div>
+                    </div>
+
+                    <br><br>
+
+                    <!-- RECENT ACTIVITY -->
+                    <section id="recentActivitySection">
+
+                        <div class="card">
+
+                            <h2>Recent Activity</h2>
+
+                            <br>
+
+                            <input type="text" class="storemanager-search" id="storemanagerActivitySearch"
+                                placeholder="Search activity..." autocomplete="off">
+
+                            <div id="noActivityResultsMessage" class="no-results">
+                                No results found.
+                            </div>
+
+                            <br><br>
+
+                            <div class="table-wrapper">
+                                <table id="storemanagerActivityTable" class="storemanager-table">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Type</th>
+                                            <th>Message</th>
+                                            <th>User</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        {% if activity_logs %}
+
+                                        {% for log in activity_logs %}
+                                        <tr>
+
+                                            <td>
+                                                {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else '-'
+                                                }}
+                                            </td>
+
+                                            <td>
+                                                {% if log.action and 'failed' in log.action.lower() %}
+                                                ERROR
+                                                {% elif log.action and 'login' in log.action.lower() %}
+                                                AUTH
+                                                {% else %}
+                                                INFO
+                                                {% endif %}
+                                            </td>
+
+                                            <td>{{ log.action }}</td>
+
+                                            <td>
+                                                {{ log.email or ('User ' ~ log.user_id if log.user_id else 'Unknown') }}
+                                                <br>
+                                                <small>{{ log.ip_address or '' }}</small>
+                                            </td>
+
+                                        </tr>
+                                        {% endfor %}
+
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                No activity found.
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                    </tbody>
+
+                                </table>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

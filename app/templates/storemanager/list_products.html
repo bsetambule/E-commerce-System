@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Manager Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('storemanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('storemanager.list_users') }}">Users</a>
+            <a href="{{ url_for('storemanager.list_products') }}" class="active">Products</a>
+            <a href="{{ url_for('storemanager.list_orders') }}">Orders</a>
+            <a href="{{ url_for('storemanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section id="productsSection">
+                <div class="card">
+
+                    <!-- HEADER + TABS -->
+                    <div class="page-header">
+                        <h2>Products</h2>
+                        <br>
+
+                        <!-- TABS -->
+                        <div class="tabs">
+
+                            <a href="{{ url_for('storemanager.list_products', tab='all') }}"
+                                class="tab-btn {% if current_tab == 'all' %}active{% endif %}">
+                                All
+                            </a>
+
+                            <a href="{{ url_for('storemanager.list_products', tab='available') }}"
+                                class="tab-btn {% if current_tab == 'available' %}active{% endif %}">
+                                Available
+                            </a>
+
+                            <a href="{{ url_for('storemanager.list_products', tab='lowstock') }}"
+                                class="tab-btn {% if current_tab == 'lowstock' %}active{% endif %}">
+                                Low Stock
+                            </a>
+
+                            <a href="{{ url_for('storemanager.list_products', tab='outofstock') }}"
+                                class="tab-btn {% if current_tab == 'outofstock' %}active{% endif %}">
+                                Out of Stock
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <!-- SEARCH -->
+                    <div class="table-toolbar">
+
+                        <input type="text" id="storemanagerProductSearch" class="storemanager-search"
+                            placeholder="Search product..."
+                            onkeyup="filterTable('storemanagerProductSearch', 'storemanagerProductTable')">
+
+                    </div>
+
+                    <div id="noProductResultsMessage" class="no-results">
+                        No products found.
+                    </div>
+
+                    <!-- TABLE -->
+                    <div class="table-wrapper">
+
+                        <table id="storemanagerProductTable" class="storemanager-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Variant</th>
+                                    <th>Price</th>
+                                    <th>Pickup</th>
+                                    <th>Delivery</th>
+                                    <th>Stock</th>
+                                    <th>Available</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% if products.items %}
+
+                                {% for product in products.items %}
+                                {% for variant in product.variants %}
+
+                                {% set bp = branch_variant_map.get(variant.id) %}
+                                {% set qty = bp.inventory.quantity if bp and bp.inventory else None %}
+
+                                <tr>
+
+                                    <!-- PRODUCT (CLICKABLE VIA DATA ATTRIBUTE) -->
+                                    <td class="product-cell clickable-cell"
+                                        data-url="{{ url_for('storemanager.view_product', product_id=product.id) }}">
+
+                                        {% if product.primary_image %}
+                                        <img src="{{ product.primary_image.image_url }}" class="table-product-image"
+                                            alt="{{ product.name }}">
+                                        {% else %}
+                                        <div class="table-product-placeholder">No Image</div>
+                                        {% endif %}
+
+                                        <div>
+                                            <strong>{{ product.name }}</strong>
+
+                                            {% if product.brand %}
+                                            <br>
+                                            <small>{{ product.brand }}</small>
+                                            {% endif %}
+                                        </div>
+
+                                    </td>
+
+                                    <!-- VARIANT -->
+                                    <td>
+                                        <strong>{{ variant.name or 'Variant' }}</strong><br>
+                                        <small>{{ variant.value or '-' }}</small>
+                                    </td>
+
+                                    <!-- PRICE -->
+                                    <td>£{{ variant.selling_price }}</td>
+
+                                    {% macro toggle_switch(name, checked, action) %}
+                                    <form method="POST" action="{{ action }}">
+                                        <label class="switch">
+                                            <input type="checkbox" name="{{ name }}" onchange="this.form.submit()" {% if
+                                                checked %}checked{% endif %}>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </form>
+                                    {% endmacro %}
+
+
+                                    <!-- PICKUP TOGGLE -->
+                                    <td>
+                                        {% set bp = branch_variant_map.get(variant.id) %}
+
+                                        <form method="POST" action="{{ url_for('storemanager.toggle_pickup',
+          product_id=product.id) }}">
+
+                                            <input type="hidden" name="variant_id" value="{{ variant.id }}">
+
+                                            <label class="switch">
+                                                <input type="checkbox" name="allows_pickup"
+                                                    onchange="this.form.submit()" {% if bp and bp.allows_pickup
+                                                    %}checked{% endif %}>
+
+                                                <span class="slider"></span>
+                                            </label>
+
+                                        </form>
+                                    </td>
+                                    <!-- DELIVERY TOGGLE -->
+                                    <td>
+                                        {% set bp = branch_variant_map.get(variant.id) %}
+
+                                        <form method="POST" action="{{ url_for('storemanager.toggle_delivery',
+          product_id=product.id) }}">
+
+                                            <input type="hidden" name="variant_id" value="{{ variant.id }}">
+
+                                            <label class="switch">
+                                                <input type="checkbox" name="allows_delivery"
+                                                    onchange="this.form.submit()" {% if bp and bp.allows_delivery
+                                                    %}checked{% endif %}>
+
+                                                <span class="slider"></span>
+                                            </label>
+
+                                        </form>
+
+                                    </td>
+
+                                    <!-- STOCK -->
+                                    <td>
+                                        {% if qty is none %}
+                                        <span class="badge">N/A</span>
+                                        {% elif qty <= 0 %} <span class="badge danger">Out</span>
+                                            {% elif qty <= 5 %} <span class="badge warning">{{ qty }}</span>
+                                                {% else %}
+                                                <span class="badge success">{{ qty }}</span>
+                                                {% endif %}
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td>
+                                        <form method="POST"
+                                            action="{{ url_for('storemanager.update_variant_status') }}">
+
+                                            <input type="hidden" name="variant_id" value="{{ variant.id }}">
+
+                                            <input type="hidden" name="branch_id" value="{{ branch.id }}">
+
+                                            <label class="switch">
+                                                <input type="checkbox" name="is_available" onchange="this.form.submit()"
+                                                    {% if bp and bp.is_available %}checked{% endif %}>
+
+                                                <span class="slider"></span>
+                                            </label>
+
+                                        </form>
+                                    </td>
+
+                                    <!-- ACTION (ONLY EDIT NOW) -->
+                                    <td>
+                                        <form id="attachform" method="POST"
+                                            action="{{ url_for('storemanager.attach_product') }}"
+                                            class="inline-stock-form">
+
+                                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                                            <input type="hidden" name="variant_id" value="{{ variant.id }}">
+
+                                            <input type="number" name="stock" min="0" value="{{ qty or 0 }}"
+                                                class="stock-input small">
+
+                                            <button type="submit" class="btn primary">
+                                                Save
+                                            </button>
+
+                                        </form>
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+                                {% endfor %}
+
+                                {% else %}
+
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <div class="empty-box">
+                                            <h4>No products found</h4>
+                                            <p>Try adjusting your filters or search terms.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% endif %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="pagination">
+
+                        {% set base_args = {'tab': current_tab} %}
+
+                        {% if products.has_prev %}
+
+                        <a href="{{ url_for('storemanager.list_products',
+                            page=products.prev_num,
+                            **base_args) }}" class="page-btn">
+
+                            Prev
+
+                        </a>
+
+                        {% else %}
+
+                        <span class="page-btn disabled">
+                            Prev
+                        </span>
+
+                        {% endif %}
+
+                        {% for page_num in products.iter_pages(
+                        left_edge=2,
+                        right_edge=2,
+                        left_current=2,
+                        right_current=2
+                        ) %}
+
+                        {% if page_num %}
+
+                        {% if page_num == products.page %}
+
+                        <span class="page-btn active">
+                            {{ page_num }}
+                        </span>
+
+                        {% else %}
+
+                        <a href="{{ url_for('storemanager.list_products',
+                                    page=page_num,
+                                    **base_args) }}" class="page-btn">
+
+                            {{ page_num }}
+
+                        </a>
+
+                        {% endif %}
+
+                        {% else %}
+
+                        <span class="page-ellipsis">
+                            …
+                        </span>
+
+                        {% endif %}
+
+                        {% endfor %}
+
+                        {% if products.has_next %}
+
+                        <a href="{{ url_for('storemanager.list_products',
+                            page=products.next_num,
+                            **base_args) }}" class="page-btn">
+
+                            Next
+
+                        </a>
+
+                        {% else %}
+
+                        <span class="page-btn disabled">
+                            Next
+                        </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".clickable-cell").forEach(cell => {
+
+                cell.addEventListener("click", function (e) {
+                    window.location.href = this.dataset.url;
+                });
+
+            });
+        });
+    </script>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

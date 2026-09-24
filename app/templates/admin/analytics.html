@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SetOhil Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.list_users') }}">Users</a>
+            <a href="{{ url_for('admin.list_stores') }}">Stores</a>
+            <a href="{{ url_for('admin.list_orders') }}">Orders</a>
+            <a href="{{ url_for('admin.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('admin.analytics') }}" class="active">Analytics</a>
+            <a href="{{ url_for('admin.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <section class="page-header">
+                <h2>Analytics</h2>
+
+            </section>
+
+            <!-- FILTERS -->
+            <section class="filters">
+                <form method="GET">
+                    <select name="range">
+                        <option value="7" {% if selected_range==7 %}selected{% endif %}>Last 7 days</option>
+                        <option value="30" {% if selected_range==30 %}selected{% endif %}>Last 30 days</option>
+                        <option value="90" {% if selected_range==90 %}selected{% endif %}>Last 90 days</option>
+                    </select>
+
+                    <button class="btn primary small">Apply</button>
+                </form>
+            </section>
+
+            <!-- ================= KPI ================= -->
+            <section class="kpi-grid">
+
+                <div class="admin-card stat-card">
+                    <h3>Revenue</h3>
+                    <p>£{{ kpis.revenue }}</p>
+                </div>
+
+                <div class="admin-card stat-card">
+                    <h3>Orders</h3>
+                    <p>{{ kpis.orders }}</p>
+                </div>
+
+                <div class="admin-card stat-card">
+                    <h3>Active Customers</h3>
+                    <p>{{ kpis.customers }}</p>
+                </div>
+
+                <div class="admin-card stat-card">
+                    <h3>Delivery Success</h3>
+                    <p>{{ kpis.delivery_success }}%</p>
+                </div>
+
+            </section>
+
+            <!-- ================= TABS ================= -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('products', event)">Products</button>
+                <button class="tab-btn" onclick="switchTab('stores', event)">Stores</button>
+                <button class="tab-btn" onclick="switchTab('couriers', event)">Couriers</button>
+                <button class="tab-btn" onclick="switchTab('customers', event)">Customers</button>
+            </div>
+
+            <!-- ================= PRODUCTS ================= -->
+            <section id="products" class="tab-content active">
+
+                <div class="admin-card">
+                    <h3>Top Selling Products</h3>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Store</th>
+                                    <th>Orders</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for p in top_products %}
+                                <tr>
+                                    <td class="rank">{{ loop.index }}</td>
+                                    <td>{{ p.name }}</td>
+                                    <td>{{ p.store }}</td>
+                                    <td>{{ p.orders }}</td>
+                                    <td>£{{ p.revenue }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <br>
+
+                <div class="admin-card">
+                    <h3>Most Searched Products</h3>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Searches</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for s in searched_products %}
+                                <tr>
+                                    <td class="rank">{{ loop.index }}</span>
+                                    <td>{{ s.name }}</td>
+                                    <td>{{ s.search_count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+        </div>
+        </section>
+
+        <!-- ================= STORES ================= -->
+        <section id="stores" class="tab-content">
+
+            <div class="admin-card">
+                <h3>Top Stores</h3>
+
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Store</th>
+                                <th>Revenue</th>
+                                <th>Orders</th>
+                                <th>Refund %</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for s in top_stores %}
+                            <tr>
+                                <td class="rank">{{ loop.index }}</td>
+                                <td>{{ s.name }}</td>
+                                <td>£{{ s.revenue }}</td>
+                                <td>{{ s.orders }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= COURIERS ================= -->
+        <section id="couriers" class="tab-content">
+
+            <div class="admin-card">
+                <h3>Courier Performance</h3>
+
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Courier</th>
+                                <th>Deliveries</th>
+                                <th>On-Time %</th>
+                                <th>Avg Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for c in courier_stats %}
+                            <tr>
+                                <td class="rank">{{ loop.index }}</td>
+                                <td>{{ c.first_name }} {{ c.last_name }}</td>
+                                <td>{{ c.deliveries }}</td>
+                                <td>{{ c.on_time }}%</td>
+                                <td>{{ c.avg_time }} mins</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================= CUSTOMERS ================= -->
+        <section id="customers" class="tab-content">
+
+            <div class="admin-card">
+                <h3>Top Customers</h3>
+
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for c in top_customers %}
+                            <tr>
+                                <td class="rank">{{ loop.index }}</td>
+                                <td>{{ c.first_name }} {{ c.last_name }}</td>
+                                <td>{{ c.orders }}</td>
+                                <td>£{{ c.spend }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+</body>
+
+</html>

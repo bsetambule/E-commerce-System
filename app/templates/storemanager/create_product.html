@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Manager Create Product</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('storemanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('storemanager.list_users') }}">Users</a>
+            <a href="{{ url_for('storemanager.list_products') }}" class="active">Products</a>
+            <a href="{{ url_for('storemanager.list_orders') }}">Orders</a>
+            <a href="{{ url_for('storemanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <h1>Create New Product</h1>
+            </header>
+
+            <!-- FORM -->
+            <div class="storemanager-card">
+
+                <form id="createproductForm" method="POST" action="{{ url_for('storemanager.create_product') }}"
+                    enctype="multipart/form-data">
+
+                    <!-- PRODUCT NAME -->
+                    <div class="form-group">
+                        <label for="name">Product Name</label>
+
+                        <input type="text" id="name" name="name" placeholder="Product name" required>
+                    </div>
+
+                    <!-- CATEGORY -->
+                    <div class="form-group">
+
+                        <label for="category">
+                            Product Category
+                        </label>
+
+                        <select id="category" name="category" required>
+
+                            <option value="" disabled selected>
+                                --Select product category--
+                            </option>
+
+                            <!-- FOOD -->
+                            <optgroup label="Food">
+                                <option value="Fresh Food">Fresh Food</option>
+                                <option value="Frozen Food">Frozen Food</option>
+                                <option value="Fruits">Fruits</option>
+                                <option value="Vegetables">Vegetables</option>
+                                <option value="Snacks">Snacks</option>
+                                <option value="Bakery">Bakery</option>
+                                <option value="Desserts">Desserts</option>
+                                <option value="Fast Food">Fast Food</option>
+                                <option value="Organic Food">Organic Food</option>
+                            </optgroup>
+
+                            <!-- DRINKS -->
+                            <optgroup label="Beverages">
+                                <option value="Soft Drinks">Soft Drinks</option>
+                                <option value="Water">Water</option>
+                                <option value="Juices">Juices</option>
+                                <option value="Tea & Coffee">Tea & Coffee</option>
+                                <option value="Energy Drinks">Energy Drinks</option>
+                                <option value="Alcoholic Beverages">
+                                    Alcoholic Beverages
+                                </option>
+                            </optgroup>
+
+                            <!-- FASHION -->
+                            <optgroup label="Fashion">
+                                <option value="Clothing">Clothing</option>
+                                <option value="Shoes">Shoes</option>
+                                <option value="Accessories">Accessories</option>
+                            </optgroup>
+
+                            <!-- ELECTRONICS -->
+                            <optgroup label="Electronics">
+                                <option value="Mobile Phones">Mobile Phones</option>
+                                <option value="Computers">Computers</option>
+                                <option value="Gaming">Gaming</option>
+                                <option value="Audio">Audio</option>
+                                <option value="Electronic Accessories">
+                                    Electronic Accessories
+                                </option>
+                            </optgroup>
+
+                            <!-- HOME -->
+                            <optgroup label="Home & Living">
+                                <option value="Furniture">Furniture</option>
+                                <option value="Kitchen Appliances">
+                                    Kitchen Appliances
+                                </option>
+                                <option value="Home Appliances">
+                                    Home Appliances
+                                </option>
+                                <option value="Home Decor">Home Decor</option>
+                            </optgroup>
+
+                            <!-- HEALTH -->
+                            <optgroup label="Health & Beauty">
+                                <option value="Skincare">Skincare</option>
+                                <option value="Haircare">Haircare</option>
+                                <option value="Makeup">Makeup</option>
+                                <option value="Personal Care">Personal Care</option>
+                            </optgroup>
+
+                            <!-- OTHER -->
+                            <optgroup label="Other">
+                                <option value="Books">Books</option>
+                                <option value="Sports Equipment">
+                                    Sports Equipment
+                                </option>
+                                <option value="Toys">Toys</option>
+                                <option value="Pet Supplies">Pet Supplies</option>
+                                <option value="Other">Other</option>
+                            </optgroup>
+
+                        </select>
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea id="description" name="description" rows="5"
+                            placeholder="Product description"></textarea>
+
+                    </div>
+
+                    <!-- PRICE -->
+                    <div class="form-group">
+
+                        <label for="price">
+                            Price (£)
+                        </label>
+                        <input type="number" id="price" step="0.01" min="0.01" name="price" placeholder="0.00" required>
+                    </div>
+
+                    <!-- STOCK -->
+                    <div class="form-group">
+
+                        <label for="stock">
+                            Stock Quantity
+                        </label>
+                        <input type="number" id="stock" min="0" name="stock" placeholder="0" required>
+                    </div>
+
+                    <!-- SKU -->
+                    <div class="form-group">
+
+                        <label for="sku">
+                            SKU
+                        </label>
+                        <input type="text" id="sku" name="sku" placeholder="SKU code" autocomplete="off" required>
+                    </div>
+
+                    <!-- IMAGE -->
+                    <div class="form-group">
+
+                        <label for="image">
+                            Product Image
+                        </label>
+
+                        <input type="file" id="image" name="image" accept="image/*">
+                        <img id="previewImage" class="image-preview hidden" alt="Preview">
+                    </div>
+
+                    <!-- AVAILABILITY -->
+                    <div class="form-group">
+
+                        <label for="is_available">
+                            Available In Store
+                        </label>
+
+                        <select id="is_available" name="is_available" required>
+
+                            <option value="" disabled selected>
+                                --Choose availability--
+                            </option>
+
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- BUTTONS -->
+                    <div class="action-buttons">
+
+                        <button type="submit" class="btn primary">
+
+                            Create Product
+
+                        </button>
+
+                        <button type="button" class="btn danger" onclick="window.history.back()">
+
+                            Cancel
+
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

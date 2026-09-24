@@ -1,0 +1,47 @@
+<nav class="sidebar">
+
+    <a href="{{ url_for('products.product_list') }}">Store</a>
+
+    {% if current_user.is_authenticated %}
+
+        {% if current_user.has_role('admin') %}
+            <h4>Admin</h4>
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.list_users') }}">Users</a>
+            <a href="{{ url_for('admin.manage_roles') }}">Roles</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+        {% endif %}
+
+        {% if current_user.has_role('inventory_manager') %}
+            <h4>Inventory</h4>
+            <a href="{{ url_for('inventory.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('inventory.stock') }}">Stock</a>
+            <a href="{{ url_for('inventory.reservations') }}">Reservations</a>
+        {% endif %}
+
+        {% if current_user.has_role('delivery_manager') %}
+            <h4>Delivery</h4>
+            <a href="{{ url_for('delivery.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('delivery.list_orders') }}">Orders</a>
+            <a href="{{ url_for('delivery.list_couriers') }}">Couriers</a>
+        {% endif %}
+
+        {% if current_user.has_role('courier') %}
+            <h4>Courier</h4>
+            <a href="{{ url_for('courier.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('courier.assigned_orders') }}">My Deliveries</a>
+        {% endif %}
+
+        {% if current_user.has_role('customer') %}
+            <h4>My Account</h4>
+            <a href="{{ url_for('orders.list_orders') }}">Orders</a>
+            <a href="{{ url_for('cart.view_cart') }}">Cart</a>
+        {% endif %}
+
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+
+    {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+    {% endif %}
+
+</nav>

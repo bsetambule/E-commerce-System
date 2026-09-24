@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Manager Orders List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('productmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('productmanager.products') }}">Products</a>
+            <a href="{{ url_for('productmanager.stores') }}">Stores</a>
+            <a href="{{ url_for('productmanager.productperformance') }}" class="active">Product Performance</a>
+            <a href="{{ url_for('productmanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section id="ordersSection">
+                <div class="card">
+
+                    <div class="page-header">
+                        <h2>Product Performance</h2>
+                        <br>
+                        <div class="tabs">
+
+                            <a href="{{ url_for('productmanager.productperformance', tab='all') }}"
+                                class="tab-btn {% if current_tab == 'all' %}active{% endif %}">
+                                All Products
+                            </a>
+
+                            <a href="{{ url_for('productmanager.productperformance', tab='top') }}"
+                                class="tab-btn {% if current_tab == 'top' %}active{% endif %}">
+                                Top Sellers
+                            </a>
+
+                            <a href="{{ url_for('productmanager.productperformance', tab='low') }}"
+                                class="tab-btn {% if current_tab == 'low' %}active{% endif %}">
+                                Low Performers
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <input type="text" class="productmanager-search" id="productmanagerOrderSearch"
+                        placeholder="Search order by ID or name..."
+                        onkeyup="filterTable('productmanagerOrderSearch', 'productmanagerOrderTable')">
+
+                    <div id="noOrderResultsMessage" class="no-results">
+                        No orders found.
+                    </div>
+                    <br><br>
+
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for item in products %}
+                                <tr>
+
+                                    <td>{{ item.name }}</td>
+
+                                    <td>{{ item.units_sold }}</td>
+
+                                    <td>${{ item.revenue }}</td>
+
+                                    <td>
+                                        {% if item.trend == 'up' %}
+                                        <span class="badge success">↑</span>
+                                        {% elif item.trend == 'down' %}
+                                        <span class="badge danger">↓</span>
+                                        {% else %}
+                                        <span class="badge">→</span>
+                                        {% endif %}
+                                    </td>
+
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+
+</body>
+
+</html>

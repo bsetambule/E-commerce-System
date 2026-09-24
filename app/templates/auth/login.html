@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SetOhil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="auth-logo">
+        <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+    </div>
+    <main class="auth-wrapper">
+        <div class="auth-container">
+
+
+            <div class="auth-card">
+
+                <h1>Welcome back</h1>
+                <p>Login to your account</p>
+
+                <form id="loginForm" method="POST" action="{{ url_for('auth.login') }}">
+
+                    <input type="email" name="email" placeholder="Email address" required>
+
+                    <input type="password" name="password" placeholder="Password" required>
+
+                    <button type="submit" class="btn primary">Continue</button>
+
+                </form>
+
+                <p style="margin-top:1rem;">
+                    Don’t have an account? <a href="{{ url_for('auth.register') }}">Create account</a>
+                </p>
+
+            </div>
+        </div>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+</body>
+
+</html>

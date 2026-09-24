@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/productdetail.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <header class="header">
+
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false"
+                aria-controls="sidebar"><span class="bar"></span><span class="bar"></span><span
+                    class="bar"></span></button>
+            <a href="{{ url_for('customer.shop') }}" class="logo"><img
+                    src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="logo"></a>
+        </div>
+
+
+        <div class="header-actions">
+
+            <a href="{{ url_for('customer.cart') }}" class="icon-btn">Cart</a>
+
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    {{ user_initials }}
+                </button>
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="{{ url_for('customer.orders') }}">Orders</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('customer.shop') }}">Shop</a>
+            <a href="{{ url_for('customer.cart') }}" class="active">Cart</a>
+            <a href="{{ url_for('customer.account') }}">Account</a>
+        </nav>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="cart-page">
+
+        <section class="cart">
+            <h2>Your Cart</h2>
+
+            {% if cart_items %}
+            <div class="cart-container">
+                <!-- CART ITEMS -->
+                <div class="cart-items">
+                    {% for item in cart_items %}
+                    <article class="cart-item">
+
+                        <!-- PRODUCT -->
+                        <div class="cart-product">
+
+                            <div class="cart-image">
+
+                                {% if item.image %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ item.image) }}"
+                                    alt="{{ item.name }}">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="{{ item.name }}">
+                                {% endif %}
+                            </div>
+
+                            <div class="cart-product-info">
+                                <h3 class="product-name">
+                                    {{ item.name }}
+                                </h3>
+                                {% if item.variant_name and item.variant_value %}
+                                <p class="product-variant">
+                                    {{ item.variant_name }}: {{ item.variant_value }}
+                                </p>
+                                {% endif %}
+                                <p class="product-price">
+                                    £{{ "%.2f"|format(item.price) }}
+                                </p>
+                            </div>
+
+                        </div>
+                        <!-- QUANTITY -->
+                        <div class="qty-counter">
+                            <button class="minus" type="button">
+                                −
+                            </button>
+                            <input type="number" min="1" value="{{ item.quantity }}" data-cart-item-id="{{ item.id }}"
+                                data-update-url="{{ url_for('customer.update_cart', cart_item_id=item.id) }}">
+                            <button class="plus" type="button">
+                                +
+                            </button>
+
+                        </div>
+                        <!-- SUBTOTAL -->
+                        <div class="cart-subtotal" id="subtotal-{{ item.id }}">
+                            £{{ "%.2f"|format(item.subtotal) }}
+                        </div>
+
+                        <!-- REMOVE -->
+                        <div class="cart-action">
+                            <form action="{{ url_for('customer.remove_from_cart', cart_item_id=item.id) }}"
+                                method="POST">
+                                <button type="submit" class="remove-btn">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- SUMMARY -->
+                <aside class="cart-summary">
+
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal">
+                            £{{ "%.2f"|format(subtotal) }}
+                        </span>
+                    </div>
+
+                    <div class="summary-item">
+                        <span>Shipping</span>
+                        <span id="cart-shipping">
+                            £{{ "%.2f"|format(shipping) }}
+                        </span>
+                    </div>
+
+                    <div class="summary-item total">
+                        <span>Total</span>
+                        <span id="cart-total">
+                            £{{ "%.2f"|format(total) }}
+                        </span>
+                    </div>
+
+                    <a href="{{ url_for('checkout.checkout_page') }}" class="checkout-btn">
+                        Proceed to Checkout
+                    </a>
+                    <a href="{{ url_for('customer.shop') }}" class="continue-shopping">
+                        Continue Shopping
+                    </a>
+                </aside>
+            </div>
+
+            {% else %}
+
+            <div class="empty-cart">
+
+                <p>Add products to continue shopping.</p>
+                <a href="{{ url_for('customer.shop') }}" class="continue-shopping">
+                    Shop Products
+                </a>
+            </div>
+
+            {% endif %}
+        </section>
+    </main>
+
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">SetOhil Store</div>
+            <p class="footer-copy">© 2026 All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts/productdetail.js') }}"></script>
+
+</body>
+
+</html>

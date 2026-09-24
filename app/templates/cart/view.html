@@ -1,0 +1,47 @@
+{% extends "base/base.html" %}
+
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+
+<h2>Your Cart</h2>
+
+{% if items %}
+
+<table>
+    <tr>
+        <th>Product</th>
+        <th>Variant</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Subtotal</th>
+    </tr>
+
+    {% for item in items %}
+    <tr>
+        <td>{{ item.product }}</td>
+        <td>{{ item.variant }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.subtotal }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>Total: {{ total }}</h3>
+
+<form method="POST" action="{{ url_for('orders.checkout') }}">
+    <input type="hidden" name="branch_id" value="1">
+    <input type="hidden" name="is_delivery" value="true">
+    <button type="submit">Checkout</button>
+</form>
+
+<form method="POST" action="{{ url_for('cart.clear_cart') }}">
+    <button type="submit">Clear Cart</button>
+</form>
+
+{% else %}
+<p>Your cart is empty</p>
+{% endif %}
+
+{% endblock %}

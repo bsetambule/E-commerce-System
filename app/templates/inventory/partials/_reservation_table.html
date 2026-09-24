@@ -1,0 +1,53 @@
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Variant</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Expires</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for r in reservations %}
+
+        <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.variant_id }}</td>
+            <td>{{ r.quantity }}</td>
+
+            <td>
+                <span class="badge bg-warning">{{ r.status }}</span>
+            </td>
+
+            <td>{{ r.expires_at }}</td>
+
+            <td>
+
+                {% if r.status == "reserved" %}
+
+                <form method="POST"
+                      action="{{ url_for('inventory_manager.release_reservation', id=r.id) }}">
+
+                    <button class="btn btn-sm btn-danger">
+                        Release
+                    </button>
+
+                </form>
+
+                {% else %}
+                    <span class="text-muted">Done</span>
+                {% endif %}
+
+            </td>
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Manager Customer View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('systemmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('systemmanager.users') }}" class="active">Users</a>
+            <a href="{{ url_for('systemmanager.stores') }}">Stores</a>
+            <a href="{{ url_for('systemmanager.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>{{ user.firstname }} {{ user.lastname }}</h1>
+                    <p class="sub">{{ user.email }}</p>
+                </div>
+                <span class="badge active">Active</span>
+            </header>
+
+            <!-- ACTIONS -->
+            <div class="admin-card">
+
+                <div class="action-buttons">
+
+                    <!-- TOGGLE ACTIVE -->
+                    <form id="toggleUserForm" method="POST"
+                        action="{{ url_for('systemmanager.toggle_user_active', user_id=user.id) }}">
+
+                        {% if user.is_active %}
+
+                        <button type="button" class="btn danger" data-confirm data-action="submit-form"
+                            data-form="toggleUserForm" data-message="Deactivate this user account?">
+
+                            Deactivate
+
+                        </button>
+
+                        {% else %}
+
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="toggleUserForm" data-message="Activate this user account?">
+
+                            Activate
+
+                        </button>
+
+                        {% endif %}
+
+                        <input type="hidden" name="action"
+                            value="{% if user.is_active %}deactivate{% else %}activate{% endif %}">
+
+                    </form>
+
+                    <!-- EDIT -->
+                    <a class="btn small outline" href="{{ url_for('systemmanager.update_user', user_id=user.id) }}">
+
+                        Edit Account
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- CUSTOMER INFO -->
+            <div class="admin-card">
+                <h3>Customer Information</h3>
+
+                <p><strong>First Name:</strong> {{ profile.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ profile.last_name }}</p>
+                <p><strong>Phone:</strong> {{ user.phone_number }}</p>
+                <p><strong>Address:</strong> {{ profile.default_address or '-' }}</p>
+
+            </div>
+
+            <!-- ACCOUNT STATS -->
+            <div class="admin-card">
+                <h3>Account Stats</h3>
+
+                <p><strong>Total Orders:</strong> {{ total_orders }}</p>
+                <p><strong>Total Spent:</strong> £{{ total_spent }}</p>
+
+                <p><strong>Last Order:</strong>
+                    {{ last_order_date.strftime('%Y-%m-%d %H:%M') if last_order_date else '-' }}
+                </p>
+
+                <p><strong>Member Since:</strong> {{ user.created_at }}</p>
+            </div>
+
+
+
+            <!-- RECENT ORDERS -->
+            <section id="recentOrdersSection">
+                <div class="admin-card">
+                    <h3>Recent Orders</h3>
+
+                    <br>
+
+                    <input type="text" class="admin-search" id="adminOrderSearch" placeholder="Search orders..."
+                        onkeyup="filterTable('adminOrderSearch', 'adminOrderTable', 'noOrderResultsMessage')">
+
+                    <div id="noOrderResultsMessage" class="no-results">
+                        No orders found.
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="adminOrderTable" class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if orders %}
+                                {% for order in orders %}
+                                <tr>
+                                    <td>{{ order.id }}</td>
+
+                                    <td>
+                                        {{ order.created_at.strftime('%Y-%m-%d %H:%M') if order.created_at else '-' }}
+                                    </td>
+
+                                    <td>{{ order.status or '-' }}</td>
+
+                                    <td>£{{ '%.2f'|format(order.subtotal or 0) }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        No orders found.
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

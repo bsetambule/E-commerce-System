@@ -1,0 +1,30 @@
+{% extends "base/inventory_base.html" %}
+
+{% block content %}
+<h1>Inventory</h1>
+
+<table>
+    <tr>
+        <th>Variant</th>
+        <th>Quantity</th>
+        <th>Reserved</th>
+        <th>Update</th>
+    </tr>
+
+    {% for item in inventory %}
+    <tr>
+        <td>{{ item.variant_id }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.reserved_quantity }}</td>
+
+        <td>
+            <form method="POST" action="{{ url_for('inventory_manager.update_stock', id=item.id) }}">
+                <input name="quantity" type="number">
+                <button>Update</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Manager Zones</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('deliverymanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('deliverymanager.couriers') }}">Couriers</a>
+            <a href="{{ url_for('deliverymanager.zones') }}" class="active">Zones</a>
+            <a href="{{ url_for('deliverymanager.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section id="ordersSection">
+                <div class="card">
+
+                    <!-- HEADER + TABS -->
+                    <div class="page-header">
+                        <h2>Zones</h2>
+                        <br>
+                        <div class="tabs">
+
+                            <a href="{{ url_for('deliverymanager.zones', tab='all') }}"
+                                class="tab-btn {% if current_tab == 'all' %}active{% endif %}">
+                                All
+                            </a>
+
+                            <a href="{{ url_for('deliverymanager.zones', tab='active') }}"
+                                class="tab-btn {% if current_tab == 'active' %}active{% endif %}">
+                                Active
+                            </a>
+
+                            <a href="{{ url_for('deliverymanager.zones', tab='inactive') }}"
+                                class="tab-btn {% if current_tab == 'inactive' %}active{% endif %}">
+                                Inactive
+                            </a>
+
+
+
+                        </div>
+
+
+                    </div>
+
+                    <br>
+
+                    <!-- SEARCH -->
+                    <input type="text" class="storemanager-search" id="storemanagerOrderSearch"
+                        placeholder="Search zone by ID or name..."
+                        onkeyup="filterTable('storemanagerOrderSearch', 'storemanagerOrderTable')">
+
+                    <div id="noOrderResultsMessage" class="no-results">
+                        No zones found.
+                    </div>
+
+                    <br><br>
+
+                    <!-- TABLE -->
+                    <div class="table-wrapper">
+                        <table class="storemanager-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Zone Name</th>
+                                    <th>City</th>
+                                    <th>Town</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for zone in zones.items %}
+                                <tr>
+
+                                    <td>{{ zone.name }}</td>
+                                    <td>{{ zone.city or "-" }}</td>
+                                    <td>{{ zone.town or "-" }}</td>
+
+                                    <td>
+                                        {% if zone.is_active %}
+                                        <span class="badge success">
+                                            Active
+                                        </span>
+                                        {% else %}
+                                        <span class="badge danger">
+                                            Inactive
+                                        </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <a class="viewProfileLink"
+                                            href="{{ url_for('deliverymanager.view_delivery_zone', zone_id=zone.id) }}">
+                                            View
+                                        </a>
+                                    </td>
+
+                                </tr>
+
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        No delivery zones found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+
+
+                    <!-- PAGINATION -->
+                    <div class="pagination">
+
+                        {% if zones.has_prev %}
+                        <a href="{{ url_for(
+        'deliverymanager.zones',
+        page=zones.prev_num,
+        search=search,
+        tab=current_tab
+    ) }}" class="page-btn">
+                            Prev
+                        </a>
+                        {% else %}
+                        <span class="page-btn disabled">Prev</span>
+                        {% endif %}
+
+                        {% for page_num in zones.iter_pages(
+                        left_edge=2,
+                        right_edge=2,
+                        left_current=2,
+                        right_current=2
+                        ) %}
+
+                        {% if page_num %}
+
+                        {% if page_num == zones.page %}
+                        <span class="page-btn active">
+                            {{ page_num }}
+                        </span>
+
+                        {% else %}
+                        <a href="{{ url_for(
+                'deliverymanager.zones',
+                page=page_num,
+                search=search,
+                tab=current_tab
+            ) }}" class="page-btn">
+                            {{ page_num }}
+                        </a>
+
+                        {% endif %}
+
+                        {% else %}
+                        <span class="page-ellipsis">…</span>
+                        {% endif %}
+
+                        {% endfor %}
+
+                        {% if zones.has_next %}
+                        <a href="{{ url_for(
+        'deliverymanager.zones',
+        page=zones.next_num,
+        search=search,
+        tab=current_tab
+    ) }}" class="page-btn">
+                            Next
+                        </a>
+                        {% else %}
+                        <span class="page-btn disabled">Next</span>
+                        {% endif %}
+
+                    </div>
+
+
+
+
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

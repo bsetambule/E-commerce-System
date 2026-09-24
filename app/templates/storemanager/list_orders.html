@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Manager Orders</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('storemanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('storemanager.list_users') }}">Users</a>
+            <a href="{{ url_for('storemanager.list_products') }}">Products</a>
+            <a href="{{ url_for('storemanager.list_orders') }}" class="active">Orders</a>
+            <a href="{{ url_for('storemanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section id="ordersSection">
+                <div class="card">
+
+                    <!-- HEADER + TABS -->
+                    <div class="page-header">
+                        <h2>Orders</h2>
+                        <br>
+                        <div class="tabs">
+
+                            <a href="{{ url_for('storemanager.list_orders', tab='all') }}"
+                                class="tab-btn {% if current_tab == 'all' %}active{% endif %}">
+                                All
+                            </a>
+
+                            <a href="{{ url_for('storemanager.list_orders', tab='pickup') }}"
+                                class="tab-btn {% if current_tab == 'pickup' %}active{% endif %}">
+                                Pickup
+                            </a>
+
+                            <a href="{{ url_for('storemanager.list_orders', tab='delivery') }}"
+                                class="tab-btn {% if current_tab == 'delivery' %}active{% endif %}">
+                                Delivery
+                            </a>
+
+                            <a href="{{ url_for('storemanager.list_orders', tab='pending') }}"
+                                class="tab-btn {% if current_tab == 'pending' %}active{% endif %}">
+                                Pending
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <br>
+
+                    <!-- SEARCH -->
+                    <input type="text" class="storemanager-search" id="storemanagerOrderSearch"
+                        placeholder="Search order by ID or name..."
+                        onkeyup="filterTable('storemanagerOrderSearch', 'storemanagerOrderTable')">
+
+                    <div id="noOrderResultsMessage" class="no-results">
+                        No orders found.
+                    </div>
+
+                    <br><br>
+
+                    <!-- TABLE -->
+                    <div class="table-wrapper">
+                        <table id="storemanagerOrderTable" class="storemanager-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for order in orders.items %}
+                                <tr>
+
+                                    <td>{{ order.id }}</td>
+
+                                    <!-- CUSTOMER -->
+                                    <td>
+                                        {{ order.user.customer_profile.first_name if order.user.customer_profile else
+                                        "Unknown" }}
+                                    </td>
+
+                                    <!-- TYPE -->
+                                    <td>
+                                        {% if order.is_delivery %}
+                                        <span class="badge active">Delivery</span>
+                                        {% else %}
+                                        <span class="badge">Pickup</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- STATUS -->
+                                    <td>
+                                        {% set status = order.status.value %}
+                                        <span class="badge
+    {% if status == 'delivered' %}success
+    {% elif status == 'cancelled' %}danger
+    {% elif status in ['pending', 'processing'] %}warning
+    {% else %}active
+    {% endif %}
+">
+                                            {{ status }}
+                                        </span>
+                                    </td>
+
+                                    <!-- DATE -->
+                                    <td>
+                                        {{ order.created_at.strftime("%Y-%m-%d %H:%M") }}
+                                    </td>
+
+                                    <!-- ACTION -->
+                                    <td>
+                                        <a class="viewProfileLink"
+                                            href="{{ url_for('storemanager.order_detail', order_id=order.id) }}">
+                                            View
+                                        </a>
+                                    </td>
+
+                                </tr>
+
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No orders found.</td>
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="pagination">
+
+                        {% set base_args = {'tab': current_tab} %}
+
+                        {% if orders.has_prev %}
+                        <a href="{{ url_for('storemanager.list_orders', page=orders.prev_num, **base_args) }}"
+                            class="page-btn">Prev</a>
+                        {% else %}
+                        <span class="page-btn disabled">Prev</span>
+                        {% endif %}
+
+                        {% for page_num in orders.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2)
+                        %}
+
+                        {% if page_num %}
+                        {% if page_num == orders.page %}
+                        <span class="page-btn active">{{ page_num }}</span>
+                        {% else %}
+                        <a href="{{ url_for('storemanager.list_orders', page=page_num, **base_args) }}"
+                            class="page-btn">
+                            {{ page_num }}
+                        </a>
+                        {% endif %}
+                        {% else %}
+                        <span class="page-ellipsis">…</span>
+                        {% endif %}
+
+                        {% endfor %}
+
+                        {% if orders.has_next %}
+                        <a href="{{ url_for('storemanager.list_orders', page=orders.next_num, **base_args) }}"
+                            class="page-btn">Next</a>
+                        {% else %}
+                        <span class="page-btn disabled">Next</span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

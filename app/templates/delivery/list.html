@@ -1,0 +1,36 @@
+{% extends "base/delivery_base.html" %}
+
+{% block content %}
+<h1>Deliveries</h1>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Order</th>
+        <th>Status</th>
+        <th>Courier</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for d in deliveries %}
+    <tr>
+        <td>{{ d.id }}</td>
+        <td>{{ d.order_id }}</td>
+        <td>{{ d.status }}</td>
+        <td>{{ d.courier_id }}</td>
+
+        <td>
+            <form method="POST" action="{{ url_for('delivery_manager.update_status', id=d.id) }}">
+                <select name="status">
+                    <option value="assigned">Assigned</option>
+                    <option value="picked_up">Picked Up</option>
+                    <option value="delivered">Delivered</option>
+                </select>
+                <button>Update</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

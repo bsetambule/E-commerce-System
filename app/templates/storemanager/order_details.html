@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Manager View Order</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('storemanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('storemanager.list_users') }}">Users</a>
+            <a href="{{ url_for('storemanager.list_products') }}">Products</a>
+            <a href="{{ url_for('storemanager.list_orders') }}" class="active">Orders</a>
+            <a href="{{ url_for('storemanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>Order #{{ order.id }}</h1>
+                </div>
+
+                <span class="badge 
+        {% if order.status.value == 'delivered' %}success
+        {% elif order.status.value == 'cancelled' %}danger
+        {% else %}active
+        {% endif %}
+    ">
+                    {{ order.status.value }}
+                </span>
+            </header>
+
+
+            <!-- ORDER INFO -->
+            <div class="storemanager-card">
+                <h3>Order Information</h3>
+
+                <p><strong>Customer:</strong> {{ order.user.firstname }} {{ order.user.lastname }}</p>
+                <p><strong>Email:</strong> {{ order.user.email }}</p>
+                <p><strong>Status:</strong> {{ order.status.value }}</p>
+                <p><strong>Created:</strong> {{ order.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
+
+                <p><strong>Type:</strong>
+                    <span class="badge {% if order.is_delivery %}active{% else %}outline{% endif %}">
+                        {% if order.is_delivery %}Delivery{% else %}Pickup{% endif %}
+                    </span>
+                </p>
+            </div>
+
+
+            <!-- DELIVERY INFO (ONLY IF DELIVERY) -->
+            {% if order.delivery %}
+            <div class="storemanager-card">
+                <h3>Delivery Information</h3>
+
+                <p><strong>Status:</strong>
+                    <span class="badge 
+        {% if order.delivery.status.value == 'delivered' %}success
+        {% elif order.delivery.status.value in ['cancelled', 'failed'] %}danger
+        {% else %}active
+        {% endif %}
+    ">
+                        {{ order.delivery.status.value }}
+                    </span>
+                </p>
+                <p><strong>Address:</strong> {{ order.delivery.delivery_address }}</p>
+
+                <p><strong>Courier:</strong>
+                    {% if order.delivery.courier %}
+                    {{ order.delivery.courier.firstname or "N/A" }}
+                    {{ order.delivery.courier.lastname or "" }}
+                    {% else %}
+                    Unassigned
+                    {% endif %}
+                </p>
+
+                <p><strong>Delivered At:</strong>
+                    {{ order.delivery.delivered_at.strftime("%Y-%m-%d %H:%M") if order.delivery.delivered_at else "Not
+                    delivered yet" }}
+                </p>
+
+                <a class="viewProfileLink"
+                    href="{{ url_for('storemanager.delivery_detail', delivery_id=order.delivery.id) }}">
+                    View Delivery Details
+                </a>
+            </div>
+            {% endif %}
+
+
+            <!-- ORDER ITEMS -->
+            <div class="storemanager-card">
+                <h3>Items</h3>
+
+                <div class="items-table">
+                    {% for item in order.items %}
+                    <div class="item-row">
+                        <span>{{ item.product_name }}</span>
+                        <span>×{{ item.quantity }}</span>
+                        <span>£{{ "%.2f"|format(item.total_price) }}</span>
+                    </div>
+                    {% endfor %}
+
+                    <div class="item-total">
+                        Total: <strong>£{{ "%.2f"|format(order.subtotal_amount) }}</strong>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- STORE DETAILS -->
+            <div class="storemanager-card">
+                <h3>Store Details</h3>
+
+                {% if order.branch %}
+                <p><strong>Name:</strong> {{ order.branch.name }}</p>
+                <p><strong>Address:</strong> {{ order.branch.address }}</p>
+                <p><strong>City:</strong> {{ order.branch.city }}</p>
+                {% else %}
+                <p>No store information</p>
+                {% endif %}
+            </div>
+
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Courier Delivery Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <div class="card">
+
+                <h2>Delivery #{{ delivery.id }}</h2>
+
+                <p><strong>Status:</strong>
+                    <span class="badge">{{ delivery.status.value.replace('_',' ').title() }}</span>
+                </p>
+
+                <p><strong>Address:</strong> {{ delivery.delivery_address }}</p>
+
+                <p><strong>Created:</strong> {{ delivery.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+
+            </div>
+
+            <!-- TIMELINE -->
+            <div class="card">
+
+                <h3>Delivery Timeline</h3>
+
+                <ul class="timeline">
+
+                    <li
+                        class="{% if delivery.status.value in ['ASSIGNED','ACCEPTED','PICKED_UP','IN_TRANSIT','DELIVERED'] %}done{% endif %}">
+                        Assigned
+                    </li>
+
+                    <li class="{% if delivery.picked_up_at %}done{% endif %}">
+                        Picked Up
+                    </li>
+
+                    <li
+                        class="{% if delivery.status.value in ['IN_TRANSIT','OUT_FOR_DELIVERY','DELIVERED'] %}done{% endif %}">
+                        In Transit
+                    </li>
+
+                    <li class="{% if delivery.delivered_at %}done{% endif %}">
+                        Delivered
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="card">
+
+                <h3>Actions</h3>
+
+                {% if delivery.status.value == 'ASSIGNED' %}
+
+                <form method="POST" action="{{ url_for('courier.pickup_delivery', id=delivery.id) }}">
+                    <button class="btn primary">Mark as Picked Up</button>
+                </form>
+
+                {% elif delivery.status.value == 'PICKED_UP' %}
+
+                <form method="POST" action="{{ url_for('courier.complete_delivery', id=delivery.id) }}">
+
+                    <input type="text" name="otp_code" placeholder="Enter OTP" required>
+
+                    <button class="btn success">Complete Delivery</button>
+
+                </form>
+
+                {% else %}
+
+                <p>No actions available.</p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+    </main>
+
+</body>
+
+</html>

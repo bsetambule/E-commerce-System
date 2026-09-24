@@ -1,0 +1,30 @@
+{% extends "base/inventory_base.html" %}
+
+{% block content %}
+<h1>Reservations</h1>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Variant</th>
+        <th>Qty</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+
+    {% for r in reservations %}
+    <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.variant_id }}</td>
+        <td>{{ r.quantity }}</td>
+        <td>{{ r.status }}</td>
+        <td>
+            <form method="POST" action="{{ url_for('inventory_manager.release_reservation', id=r.id) }}">
+                <button>Release</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

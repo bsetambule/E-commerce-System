@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SetOhil Landing Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <section class="section-hero">
+        <header class="navbar container">
+            <a href="#" class="logo">
+                <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+            </a>
+
+            <nav class="desktop-nav">
+                <a href="./index.html" class="active">Home</a>
+                <a href="./shop.html">Shop</a>
+                <a href="{{ url_for('auth.login') }}">Login</a>
+                <a href="{{ url_for('auth.register') }}">Create Account</a>
+            </nav>
+
+            <!-- Hamburger -->
+            <button class="menu-toggle" id="menuToggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </header>
+
+        <!-- Overlay -->
+        <div class="overlay" id="overlay"></div>
+
+        <!-- Sidebar (FIXED ID) -->
+        <aside class="mobile-nav" id="sidebar">
+            <a href="./index.html">Home</a>
+            <a href="./shop.html">Shop</a>
+            <a href="{{ url_for('auth.login') }}">Login</a>
+            <a href="{{ url_for('auth.register') }}">Create Account</a>
+        </aside>
+
+        <main>
+            <div class="hero container">
+                <h1>Shop What’s Next — Before Everyone Else</h1>
+                <p>
+                    Discover trending products before they hit the mainstream.
+                    We bring you what’s new, what’s rising, and what everyone will want next — first.
+                </p>
+
+                <div class="hero-buttons">
+                    <a class="btn primary" href="./shop.html">Shop Now</a>
+                    <a class="btn outline" href="#paths">Explore Trends</a>
+                </div>
+            </div>
+    </section>
+    <br>
+
+    <section class="section-body" id="paths">
+        <div class="container">
+            <h2>Why Shop With Us</h2>
+
+            <div class="cards">
+                <div class="card">
+                    <h3>Early Access Products</h3>
+                    <p>Get your hands on trending items before they become widely available.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Curated for What’s Next</h3>
+                    <p>We source products based on rising trends so you’re always ahead of the crowd.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Fast-Moving Drops</h3>
+                    <p>Our collections update quickly — shop early to secure what others will soon want.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+                </a>
+            </div>
+
+            <div class="footer-links">
+                <a href="./index.html">Home</a>
+                <a href="./shop.html">Shop</a>
+                <a href="{{ url_for('auth.register') }}">Create Account</a>
+                <a href="{{ url_for('auth.login') }}">Login</a>
+            </div>
+
+            <div class="footer-meta">
+                <p>© 2026 SetOhil Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+</body>
+
+</html>

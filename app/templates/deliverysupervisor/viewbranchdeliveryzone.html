@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Supervisor View Zone</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('deliverysupervisor.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('deliverysupervisor.couriers') }}">Couriers</a>
+            <a href="{{ url_for('deliverysupervisor.zones') }}" class="active">Zones</a>
+            <a href="{{ url_for('deliverysupervisor.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- PAGE HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>View Delivery Zone</h1>
+
+                </div>
+            </header>
+
+            <!-- FORM CARD -->
+            <div class="storemanager-card">
+
+                <div class="view-zone-container">
+                    <!-- ZONE NAME -->
+                    <div class="detail-row">
+                        <h3>Delivery Zone</h3>
+                        <p>
+                            {{ zone.name }}
+                            {% if zone.city %}
+                            - {{ zone.city }}
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- FEES -->
+                    <div class="detail-grid">
+
+                        <div class="detail-item">
+                            <h4>Base Delivery Fee</h4>
+                            <p>£{{ branch_zone.base_fee }}</p>
+                        </div>
+
+                        <div class="detail-item">
+                            <h4>Minimum Order Value</h4>
+                            <p>£{{ branch_zone.min_order_value or 0 }}</p>
+                        </div>
+
+                        <div class="detail-item">
+                            <h4>Free Delivery Threshold</h4>
+                            <p>
+                                {% if branch_zone.free_delivery_threshold %}
+                                £{{ branch_zone.free_delivery_threshold }}
+                                {% else %}
+                                Not set
+                                {% endif %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- DELIVERY SETTINGS -->
+                    <div class="detail-grid">
+
+                        <div class="detail-item">
+                            <h4>Estimated Delivery Time</h4>
+                            <p>
+                                {% if branch_zone.estimated_delivery_minutes %}
+                                {{ branch_zone.estimated_delivery_minutes }} mins
+                                {% else %}
+                                Not set
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="detail-item">
+                            <h4>Max Distance</h4>
+                            <p>
+                                {% if branch_zone.max_delivery_distance_km %}
+                                {{ branch_zone.max_delivery_distance_km }} km
+                                {% else %}
+                                Not set
+                                {% endif %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- OPTIONS -->
+                    <div class="detail-row">
+                        <h3>Delivery Options</h3>
+
+                        <p>
+                            Same Day Delivery:
+                            <strong>
+                                {{ "Enabled" if branch_zone.supports_same_day_delivery else "Disabled" }}
+                            </strong>
+                        </p>
+
+                        <p>
+                            Scheduled Delivery:
+                            <strong>
+                                {{ "Enabled" if branch_zone.supports_scheduled_delivery else "Disabled" }}
+                            </strong>
+                        </p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- NOTES -->
+                    <div class="detail-row">
+                        <h3>Notes</h3>
+                        <p>
+                            {{ branch_zone.notes or "No notes provided." }}
+                        </p>
+                    </div>
+
+
+                    <!-- ACTIONS -->
+                    <div class="form-actions">
+
+                        <a href="{{ url_for('deliverysupervisor.zones') }}" class="btn outline">
+                            Back
+                        </a>
+
+                        <a href="{{ url_for('deliverysupervisor.edit_branch_delivery_zone', branch_zone_id=branch_zone.id) }}"
+                            class="btn primary">
+                            Edit
+                        </a>
+
+                        {% if branch_zone.is_active %}
+
+                        <form method="POST"
+                            action="{{ url_for('deliverysupervisor.delete_branch_delivery_zone', branch_zone_id=branch_zone.id) }}"
+                            class="inline-form">
+
+                            <button type="submit" class="btn danger">
+                                Delete
+                            </button>
+
+                        </form>
+
+                        {% else %}
+
+                        <form method="POST"
+                            action="{{ url_for('deliverysupervisor.restore_branch_delivery_zone', branch_zone_id=branch_zone.id) }}"
+                            class="inline-form">
+
+                            <button type="submit" class="btn success">
+                                Restore
+                            </button>
+
+                        </form>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

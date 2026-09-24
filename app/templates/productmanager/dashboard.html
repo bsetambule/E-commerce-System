@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Manager Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('productmanager.dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('productmanager.products') }}">Products</a>
+            <a href="{{ url_for('productmanager.stores') }}">Stores</a>
+            <a href="{{ url_for('productmanager.productperformance') }}">Product Performance</a>
+            <a href="{{ url_for('productmanager.analytics') }}">Analytics</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <section class="hero">
+                <h1>System Dashboard</h1>
+                <p>Monitor products performance.</p>
+            </section>
+
+            <!-- KPI -->
+            <section class="admin-kpis">
+                <div class="card kpi">
+                    <span>Total Products</span>
+                    <h2>{{ products_count }}</h2>
+                    <small>Products uploaded</small>
+                </div>
+
+                <div class="card kpi">
+                    <span>Total Promotions</span>
+                    <h2>{{ promotions_count }}</h2>
+                    <small>All current promotions</small>
+                </div>
+
+                <div class="card kpi alert">
+                    <span>Draft Products</span>
+                    <h2>{{ drafts_count }}</h2>
+                    <small>Incomplete products</small>
+                </div>
+
+
+            </section>
+
+            <section class="admin-grid-layout">
+
+                <!-- LEFT -->
+                <div class="admin-main">
+
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <div class="admin-actions">
+                             <a href="{{ url_for('productmanager.create_product') }}" class="btn small primary">Add
+                                Product</a>
+                            <a href="{{ url_for('productmanager.bulk_create_products') }}" class="btn small primary">Bulk
+                                Add</a>
+                            <a href="{{ url_for('productmanager.analytics') }}" class="btn small primary">Analytics</a>
+                            <a href="{{ url_for('productmanager.productperformance') }}" class="btn small outline">View Product Performance</a>
+                        </div>
+                    </div>
+
+                    <br><br>
+                    <!-- RECENT ACTIVITY SECTION -->
+
+                    <section id="recentActivitySection">
+                        <div class="card">
+                            <h2>Recent Activity</h2>
+                            <br>
+
+                            <input type="text" class="admin-search" id="adminActivitySearch"
+                                placeholder="Search user by date or name..." autocomplete="off">
+
+                            <div id="noActivityResultsMessage" class="no-results">
+                                No results found.
+                            </div>
+
+                            <br><br>
+                            <div class="table-wrapper">
+                                <table id="adminActivityTable" class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Type</th>
+                                            <th>Message</th>
+                                            <th>User</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if activity_logs %}
+                                        {% for log in activity_logs %}
+                                        <tr>
+                                            <td>
+                                                {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else ''
+                                                }}
+                                            </td>
+
+                                            <td>
+                                                {% if log.action and "failed" in log.action.lower() %}
+                                                ERROR
+                                                {% elif log.action and "login" in log.action.lower() %}
+                                                AUTH
+                                                {% else %}
+                                                INFO
+                                                {% endif %}
+                                            </td>
+
+                                            <td>{{ log.action }}</td>
+
+                                            <td>
+                                                {% if log.email %}
+                                                {{ log.email }}
+                                                {% else %}
+                                                User {{ log.user_id or "Unknown" }}
+                                                {% endif %}
+
+                                                <br>
+
+                                                <small>
+                                                    {{ log.ip_address or "" }}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">
+                                                No activity found.
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </section>
+
+
+                </div>
+
+
+
+            </section>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

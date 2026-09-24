@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Manager View Zone</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('deliverymanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('deliverymanager.couriers') }}">Couriers</a>
+            <a href="{{ url_for('deliverymanager.zones') }}" class="active">Zones</a>
+            <a href="{{ url_for('deliverymanager.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- PAGE HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>View Delivery Zone</h1>
+
+                </div>
+            </header>
+
+            <!-- FORM CARD -->
+            <div class="storemanager-card">
+
+                <div class="view-zone-container">
+
+                    <!-- ZONE NAME -->
+                    <div class="form-group">
+
+                        <label for="name">
+                            Zone Name
+                        </label>
+
+                        <input type="text" id="name" value="{{ zone.name }}" readonly>
+
+                    </div>
+
+                    <!-- TOWN -->
+                    <div class="form-group">
+
+                        <label for="town">
+                            Town
+                        </label>
+
+                        <input type="text" id="town" value="{{ zone.town or '-' }}" readonly>
+
+                    </div>
+
+                    <!-- CITY -->
+                    <div class="form-group">
+
+                        <label for="city">
+                            City
+                        </label>
+
+                        <input type="text" id="city" value="{{ zone.city or '-' }}" readonly>
+
+                    </div>
+
+                    <!-- COVERED AREAS -->
+                    <div class="form-group">
+
+                        <label for="covered_areas">
+                            Covered Areas
+                        </label>
+
+                        <small>
+                            One area per line
+                        </small>
+
+                        <textarea id="covered_areas" rows="5"
+                            readonly>{{ zone.covered_areas | join('\n') if zone.covered_areas else '-' }}</textarea>
+
+                    </div>
+
+                    <!-- POSTCODE PREFIXES -->
+                    <div class="form-group">
+
+                        <label for="postcode_prefixes">
+                            Postcode Prefixes
+                        </label>
+
+                        <small>
+                            One postcode prefix per line
+                        </small>
+
+                        <textarea id="postcode_prefixes" rows="5"
+                            readonly>{{ zone.postcode_prefixes | join('\n') if zone.postcode_prefixes else '-' }}</textarea>
+
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="form-group">
+
+                        <label>
+                            Status
+                        </label>
+
+                        <div class="zone-status-card {% if zone.is_active %}active{% else %}inactive{% endif %}">
+
+                            <div class="status-indicator"></div>
+
+                            <div class="status-content">
+
+                                <h4>
+                                    {% if zone.is_active %}
+                                    Active Zone
+                                    {% else %}
+                                    Inactive Zone
+                                    {% endif %}
+                                </h4>
+
+                                <p>
+
+                                    {% if zone.is_active %}
+                                    This delivery zone is currently available for deliveries.
+                                    {% else %}
+                                    This delivery zone is currently disabled and unavailable for deliveries.
+                                    {% endif %}
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="form-actions">
+
+                        <!-- BACK -->
+                        <a href="{{ url_for('deliverymanager.zones') }}" class="btn outline">
+                            Back
+                        </a>
+
+                        <!-- EDIT -->
+                        <a href="{{ url_for('deliverymanager.edit_delivery_zone', zone_id=zone.id) }}"
+                            class="btn primary">
+                            Edit
+                        </a>
+
+                        <!-- DELETE -->
+                        {% if zone.is_active %}
+
+                        <form method="POST"
+                            action="{{ url_for('deliverymanager.delete_delivery_zone', zone_id=zone.id) }}"
+                            class="inline-form">
+
+                            <button type="submit" class="btn danger"
+                                onclick="return confirm('Delete this delivery zone?')">
+                                Delete
+                            </button>
+
+                        </form>
+
+                        <!-- RESTORE -->
+                        {% else %}
+
+                        <form method="POST"
+                            action="{{ url_for('deliverymanager.restore_delivery_zone', zone_id=zone.id) }}"
+                            class="inline-form">
+
+                            <button type="submit" class="btn outline">
+                                Restore
+                            </button>
+
+                        </form>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

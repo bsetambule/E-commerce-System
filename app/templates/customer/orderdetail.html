@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{order.id}}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/productdetail.css') }}">
+</head>
+
+<body>
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <header class="header">
+
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+            </button>
+
+            <a href="{{ url_for('customer.shop') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="logo">
+            </a>
+
+
+        </div>
+
+        <div class="header-actions">
+            <a href="{{ url_for('customer.cart') }}" class="icon-btn">Cart</a>
+
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    {{ user_initials }}
+                </button>
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="{{ url_for('customer.orders') }}">Orders</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                </div>
+
+            </div>
+        </div>
+
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('customer.shop') }}">Shop</a>
+            <a href="{{ url_for('customer.cart') }}">Cart</a>
+            <a href="{{ url_for('customer.account') }}" class="active">Account</a>
+        </nav>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="page-container order-page">
+
+        <!-- Page Header -->
+        <section class="page-topbar">
+            <div>
+                <h1 class="page-title">Order #{{ order.id }}</h1>
+                <p class="page-subtitle">
+                    View your order details and purchased items
+                </p>
+            </div>
+
+            <div class="search-wrapper">
+                <input type="text" class="customer-search" id="customerOrderSearch"
+                    placeholder="Search order by date or name..."
+                    onkeyup="filterTable('customerOrderSearch', 'customerOrderTable')">
+
+                <div id="noOrderResultsMessage" class="no-results">
+                    No orders found.
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Overview -->
+        <section class="card order-overview">
+
+            <div class="order-header">
+                <div>
+                    <h2>Order #{{ order.id }}</h2>
+                    <span class="status-badge">
+                        {{ order.status.value }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="order-meta-grid">
+
+                <div class="meta-box">
+                    <span class="meta-label">Order Type</span>
+                    <strong>
+                        {{ "Delivery" if order.is_delivery else "Pickup" }}
+                    </strong>
+                </div>
+
+                <div class="meta-box">
+                    <span class="meta-label">Order Date</span>
+                    <strong>
+                        {{ order.created_at.strftime("%Y-%m-%d") }}
+                    </strong>
+                </div>
+
+                <div class="meta-box">
+                    <span class="meta-label">Store</span>
+                    <strong>
+                        {{ order.branch.name }}
+                    </strong>
+                </div>
+
+                <div class="meta-box total-box">
+                    <span class="meta-label">Grand Total</span>
+                    <strong>£{{ order.grand_total }}</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Order Items -->
+        <section class="card">
+
+            <div class="section-header">
+                <h2>Order Items</h2>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="table modern-table">
+
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td>{{ item.product_name }}</td>
+                            <td>{{ item.variant_name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>£{{ item.unit_price }}</td>
+                            <td class="price">£{{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">SetOhil Store</div>
+            <p class="footer-copy">© 2026 All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts/productdetail.js') }}"></script>
+
+</body>
+
+</html>

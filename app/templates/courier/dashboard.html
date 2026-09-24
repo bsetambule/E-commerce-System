@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courier Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('courier.dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('courier.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+
+    </aside>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HERO -->
+            <section class="hero">
+                <h1>
+                    Hello,
+                    {% if staff %}
+                    {{ staff.first_name }} {{ staff.last_name }}
+                    {% else %}
+                    Courier
+                    {% endif %}
+                </h1>
+
+            </section>
+
+            <!-- KPI GRID -->
+            <section class="storemanager-kpis">
+
+                <div class="card kpi warning">
+                    <span>Active Jobs</span>
+                    <h2>{{ active_count }}</h2>
+                    <small>Currently working on</small>
+                </div>
+
+                <div class="card kpi success">
+                    <span>Completed</span>
+                    <h2>{{ completed_count }}</h2>
+                    <small>Successfully delivered</small>
+                </div>
+
+            </section>
+
+            <!-- GRID -->
+            <section class="storemanager-grid-layout">
+
+                <div class="storemanager-main">
+
+                    <!-- QUICK ACTIONS -->
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+
+                        <div class="storemanager-actions">
+
+                            <a href="{{ url_for('courier.deliveries', tab='active') }}" class="btn small primary">
+                                Active Deliveries
+                            </a>
+
+                            <a href="{{ url_for('courier.deliveries', tab='completed') }}" class="btn small outline">
+                                Completed Deliveries
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <br><br>
+
+                    <!-- RECENT DELIVERIES -->
+                    <section class="card">
+
+                        <div class="page-header">
+                            <h2>Recent Deliveries</h2>
+                        </div>
+
+                        <div class="table-wrapper">
+
+                            <table class="storemanager-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Courier</th>
+                                        <th>Zone</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {% if recent_deliveries is defined and recent_deliveries %}
+
+                                    {% for delivery in recent_deliveries %}
+
+                                    <tr>
+
+                                        <td>
+                                            #{{ delivery.order.public_id if delivery.order else delivery.id }}
+                                        </td>
+
+                                        <td>
+                                            {% if delivery.courier and delivery.courier.courier_profile %}
+                                            {{ delivery.courier.courier_profile.first_name }}
+                                            {{ delivery.courier.courier_profile.last_name }}
+                                            {% else %}
+                                            Unassigned
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ delivery.delivery_zone_name or '-' }}
+                                        </td>
+
+                                        <td>
+                                            <span class="badge">
+                                                {{ delivery.status.value|default('UNKNOWN')|replace('_', ' ') }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            {{ delivery.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </td>
+
+                                    </tr>
+
+                                    {% endfor %}
+
+                                    {% else %}
+
+                                    <tr>
+                                        <td colspan="5" class="empty-state">
+                                            No deliveries found.
+                                        </td>
+                                    </tr>
+
+                                    {% endif %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </section>
+
+
+
+                </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

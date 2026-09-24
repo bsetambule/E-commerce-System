@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{product.name}}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/productdetail.css') }}">
+</head>
+
+<body>
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    <!-- =========================================
+         HEADER
+    ========================================== -->
+    <header class="header">
+
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+            </button>
+
+            <a href="{{ url_for('customer.shop') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="logo">
+            </a>
+
+        </div>
+
+        <div class="header-actions">
+            <a href="{{ url_for('customer.cart') }}" class="icon-btn">Cart</a>
+
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    {{ user_initials }}
+                </button>
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="{{ url_for('customer.orders') }}">Orders</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                </div>
+
+            </div>
+        </div>
+
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('customer.shop') }}" class="active">Shop</a>
+            <a href="{{ url_for('customer.cart') }}">Cart</a>
+            <a href="{{ url_for('customer.account') }}">Account</a>
+        </nav>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="pdp">
+
+        <!-- =====================================
+        PRODUCT HERO
+    ====================================== -->
+        <section class="pdp__hero">
+
+            <!-- PRODUCT IMAGE -->
+            <div class="pdp__gallery">
+
+                <div class="pdp__image-wrap">
+
+
+                    <img class="pdp__image" src="{{ url_for('static', filename=product_image_url) }}"
+                        alt="{{ product.name }}">
+                </div>
+
+            </div>
+
+            <!-- PRODUCT INFORMATION -->
+            <div class="pdp__info">
+
+                <!-- BREADCRUMB -->
+                <nav class="pdp__breadcrumb">
+
+                    <a href="{{ url_for('customer.shop') }}">Shop</a>
+
+                    {% if product.category %}
+                    <span>/</span>
+                    <a href="#">{{ product.category }}</a>
+                    {% endif %}
+
+                    <span>/</span>
+
+                    <span>{{ product.name }}</span>
+
+                </nav>
+
+                <!-- CATEGORY -->
+                {% if product.category %}
+                <div class="pdp__category">
+                    {{ product.category }}
+                </div>
+                {% endif %}
+
+                <!-- TITLE -->
+                <h1 class="pdp__title">
+                    {{ product.name }}
+                </h1>
+
+                <!-- PRICE -->
+                <div class="pdp__pricing">
+
+                    <div class="pdp__price">
+                        £<span id="productPrice">
+                            {{ default_variant.selling_price if default_variant else '0.00' }}
+                        </span>
+                    </div>
+                    <div class="pdp__availability">
+
+                        <span class="pdp__stock">
+                            In stock
+                        </span>
+
+                        {% if product.available_for_delivery %}
+                        <span class="pdp__delivery">
+                            Available for delivery
+                        </span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                <!-- DESCRIPTION -->
+                {% if product.description %}
+                <div class="pdp__description">
+                    <p>{{ product.description }}</p>
+                </div>
+                {% endif %}
+
+                <!-- VARIANTS -->
+                {% if product.variants %}
+                <div class="pdp__variants">
+
+                    <div class="pdp__section-label">
+                        Select {{ product.variants[0].name or "Option" }}
+                    </div>
+
+                    <div class="pdp__variant-grid">
+
+                        {% for v in product.variants %}
+                        <button type="button" class="pdp__variant {% if v.is_default %}active{% endif %}"
+                            data-id="{{ v.id }}" data-price="{{ v.selling_price }}" data-sku="{{ v.sku }}">
+
+                            <span class="pdp__variant-value">
+                                {{ v.value }}
+                            </span>
+
+                            <span class="pdp__variant-price">
+                                £{{ v.selling_price }}
+                            </span>
+
+                        </button>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+                {% endif %}
+
+                <!-- PURCHASE -->
+                <div class="pdp__purchase">
+
+                    <!-- QUANTITY -->
+                    <div class="pdp__qty">
+
+                        <button type="button" id="dec" aria-label="Decrease quantity">
+
+                            −
+
+                        </button>
+
+                        <span id="qty">1</span>
+
+                        <button type="button" id="inc" aria-label="Increase quantity">
+
+                            +
+
+                        </button>
+
+                    </div>
+
+                    <!-- ADD TO CART -->
+                    <form class="pdp__cart-form" method="POST"
+                        action="{{ url_for('customer.add_to_cart', product_id=product.id) }}">
+
+                        <input type="hidden" name="branch_id" value="{{ selected_branch_id }}">
+
+                        <input type="hidden" name="variant_id" id="variantInput"
+                            value="{{ default_variant.id if default_variant else '' }}">
+                        <input type="hidden" name="quantity" id="qtyInput" value="1">
+
+                        <button class="pdp__cta">
+                            Add to cart
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- =====================================
+        RELATED PRODUCTS
+    ====================================== -->
+        {% if similar_products %}
+        <section class="pdp__related">
+
+            <div class="pdp__related-header">
+                <h2>You may also like</h2>
+                <p>Similar products in this category</p>
+            </div>
+
+            <div class="pdp__related-grid">
+
+                {% for item in similar_products %}
+
+                {% set item_image = item.images | selectattr("is_primary") | first %}
+
+                {% if item_image and item_image.image_url %}
+                {% set filename = item_image.image_url.split('/')[-1] %}
+                {% set img_path = 'uploads/' ~ filename %}
+                {% else %}
+                {% set img_path = 'images/logo4.jpeg' %}
+                {% endif %}
+
+
+
+                <a href="{{ url_for('customer.product_detail', product_id=item.id) }}" class="pdp__card">
+
+                    <div class="pdp__card-image">
+
+                        <img src="{{ url_for('static', filename=img_path) }}" alt="{{ item.name }}">
+                    </div>
+
+                    <div class="pdp__card-content">
+                        <div class="pdp__card-name">
+                            {{ item.name }}
+                        </div>
+
+                        <div class="pdp__card-price">
+                            £{{ "%.2f"|format(item.variants[0].selling_price|float) if item.variants else '0.00' }}
+                        </div>
+                    </div>
+
+                </a>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+        {% endif %}
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">SetOhil Store</div>
+            <p class="footer-copy">© 2026 All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts/productdetail.js') }}"></script>
+
+</body>
+
+</html>

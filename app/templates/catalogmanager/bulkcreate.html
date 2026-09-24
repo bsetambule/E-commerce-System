@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalog Manager Bulk Product Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/storemanager.css') }}">
+</head>
+
+<body>
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+             <a href="{{ url_for('catalogmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('catalogmanager.products') }}" class="active">Products</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <h1>Bulk Product Upload</h1>
+                <p class="page-subtitle">
+                    Upload products using the official Excel template (.xlsx) with embedded images.
+                </p>
+            </header>
+
+            <!-- FORM -->
+            <div class="storemanager-card">
+
+                <!-- DOWNLOAD TEMPLATE -->
+                <a href="{{ url_for('static', filename='templates/product_upload_template.xlsx') }}" download
+                    class="secondary-btn">
+                    Download Excel Template
+                </a>
+
+                <div class="info-box">
+                    <h4>Excel Upload Rules</h4>
+                    <ul>
+                        <li>Use the provided Excel template only</li>
+                        <li>Do not rename columns</li>
+                        <li>Category values must match allowed categories</li>
+                        <li>Each row represents one product</li>
+                        <li>Images can be embedded directly in the "image" column</li>
+                        <li>SKU values must be unique</li>
+                    </ul>
+                </div>
+                <br>
+                <!-- UPLOAD FORM -->
+                <form id="bulkuploadForm" method="POST" enctype="multipart/form-data"
+                    action="{{ url_for('catalogmanager.bulk_create_products') }}" class="bulk-upload-form">
+
+                    <!-- FILE -->
+                    <div class="form-group">
+                        <label for="excel_file">Upload Excel File</label>
+                        <input type="file" id="excel_file" name="excel_file" accept=".xlsx" required>
+                        <small>Only Excel (.xlsx) files are supported.</small>
+                    </div>
+                    <br>
+                    <!-- TEMPLATE -->
+                    <div class="info-box">
+                        <h4>Excel Template</h4>
+                        <p>Download the official Excel template and fill your products including images before
+                            uploading.</p>
+                        <a href="{{ url_for('static', filename='excelfile/product_upload_template.xlsx') }}" download
+                            class="btn outline">
+                            Download Template
+                        </a>
+                    </div>
+
+                    <br>
+                    <!-- RULES -->
+                    <div class="info-box">
+                        <h4>Upload Rules</h4>
+                        <ul>
+                            <li>Each row represents one product</li>
+                            <li>SKU values must be unique</li>
+                            <li>Price must be greater than 0</li>
+                            <li>Stock cannot be negative</li>
+                            <li>Status should be "available" or "disabled"</li>
+                            <li>Images must be embedded in the Excel file</li>
+                        </ul>
+                    </div>
+
+                    <!-- SUBMIT -->
+                    <div class="action-buttons">
+                        <button type="submit" class="btn primary">Upload Products</button>
+                        <button type="button" class="btn danger" onclick="window.history.back()">
+                            Cancel</button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/storemanager.js') }}"></script>
+
+</body>
+
+</html>

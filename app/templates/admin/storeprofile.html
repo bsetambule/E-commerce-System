@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Store View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.list_users') }}">Users</a>
+            <a href="{{ url_for('admin.list_stores') }}" class="active">Stores</a>
+            <a href="{{ url_for('admin.list_orders') }}">Orders</a>
+            <a href="{{ url_for('admin.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>{{ store.name }}</h1>
+                    <p class="sub">{{ store.address }}</p>
+                </div>
+                <span class="badge {{ 'active' if store.is_active else 'deactivated' }}">
+                    {{ 'Active' if store.is_active else 'Deactivated' }}
+                </span>
+            </header>
+
+            <!-- ACTIONS -->
+            <div class="admin-card">
+                <div class="action-buttons">
+
+                    <!-- TOGGLE ACTIVE -->
+                    <form id="toggleStoreForm" method="POST"
+                        action="{{ url_for('admin.toggle_store_status', store_id=store.id) }}">
+
+                        {% if store.is_active %}
+
+                        <button type="button" class="btn danger" data-confirm data-action="submit-form"
+                            data-form="toggleStoreForm" data-message="Deactivate this store?">
+
+                            Deactivate
+
+                        </button>
+
+                        {% else %}
+
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="toggleStoreForm" data-message="Activate this store?">
+
+                            Activate
+
+                        </button>
+
+                        {% endif %}
+
+                        <input type="hidden" name="action"
+                            value="{% if store.is_active %}deactivate{% else %}activate{% endif %}">
+
+                    </form>
+
+                    <!-- EDIT -->
+                    <a class="btn small outline" href="{{ url_for('admin.update_store', store_id=store.id) }}">
+
+                        Edit Store
+
+                    </a>
+
+
+                </div>
+                <p class="decision-status"></p>
+            </div>
+
+            <!-- STORE MANAGER -->
+            <div class="admin-card">
+                <h3>Store Manager</h3>
+
+                {% if manager and manager.staff_profile %}
+
+                <p>
+                    <strong>Name:</strong>
+                    {{ manager.staff_profile.first_name }}
+                    {{ manager.staff_profile.last_name }}
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    {{ manager.email }}
+                </p>
+
+                <p>
+                    <strong>Phone:</strong>
+                    {{ manager.phone_number or '-' }}
+                </p>
+
+                {% else %}
+
+                <p>No store manager assigned.</p>
+
+                {% endif %}
+            </div>
+
+            <!-- LOCATION -->
+            <div class="admin-card">
+                <h3>Location</h3>
+                <p><strong>Address:</strong> {{ store.address }}</p>
+                <p><strong>City:</strong> {{ store.city or '-' }}</p>
+
+                <p><strong>Coordinates:</strong>
+                    {{ store.latitude or '-' }},
+                    {{ store.longitude or '-' }}
+                </p>
+            </div>
+
+            <!-- PERFORMANCE -->
+            <div class="admin-card">
+                <h3>Performance</h3>
+
+                <p><strong>Total Orders:</strong> {{ store.orders|length }}</p>
+
+                <p><strong>Total Products:</strong> {{ store.products|length }}</p>
+
+                <p><strong>Created:</strong>
+                    {{ store.created_at.strftime('%Y-%m-%d') if store.created_at else '-' }}
+                </p>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

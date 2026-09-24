@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Manager Courier View</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('deliverymanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('deliverymanager.couriers') }}" class="active">Couriers</a>
+            <a href="{{ url_for('deliverymanager.zones') }}">Zones</a>
+            <a href="{{ url_for('deliverymanager.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>{{ courier.first_name }} {{ courier.last_name }}</h1>
+                    <p class="sub">{{ user.email }}</p>
+                </div>
+                <span class="badge active">Active</span>
+            </header>
+
+          
+            <!-- COURIER DETAILS -->
+            <div class="admin-card">
+                <h3>Courier Details</h3>
+
+                <p><strong>Full Name:</strong> {{ courier.first_name }} {{ courier.last_name }}</p>
+                <p><strong>Role:</strong> {{ user.role }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Phone:</strong> {{ user.phone_number }}</p>
+            </div>
+
+            <!-- PERFORMANCE -->
+            <div class="admin-card">
+                <h3>Performance</h3>
+
+                <p><strong>Deliveries Completed:</strong> {{ completed_deliveries }}</p>
+
+                <p><strong>Member Since:</strong>
+                    {{ courier.created_at.strftime('%Y-%m-%d') if courier.created_at else '-' }}
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+   
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

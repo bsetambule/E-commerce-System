@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>System Manager Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('systemmanager.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('systemmanager.users') }}">Users</a>
+            <a href="{{ url_for('systemmanager.stores') }}">Stores</a>
+            <a href="{{ url_for('systemmanager.activity') }}" class="active">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <section class="page-header">
+                <h2>Activity Logs</h2>
+            </section>
+
+            <!-- ================= ACTIVITY LOGS ================= -->
+            <section id="activitylogs" class="tab-content active">
+
+                <div class="admin-card">
+
+                    <input type="text" class="admin-search" id="adminLogSearch" placeholder="Search logs..."
+                        onkeyup="filterTable('adminLogSearch', 'adminLogTable')">
+
+                    <div id="noLogResultsMessage" class="no-results">
+                        No logs found.
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table id="adminLogTable" class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Message</th>
+                                    <th>User</th>
+                                    <th>Agent</th>
+                                    <th>Device</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if activity_logs %}
+                                {% for log in activity_logs %}
+                                <tr>
+                                    <td>
+                                        {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else '' }}
+                                    </td>
+
+                                    <td>
+                                        {% if log.action and "failed" in log.action.lower() %}
+                                        ERROR
+                                        {% elif log.action and "login" in log.action.lower() %}
+                                        AUTH
+                                        {% else %}
+                                        INFO
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ log.action }}</td>
+
+                                    <td>
+                                        {% if log.email %}
+                                        {{ log.email }}
+                                        {% else %}
+                                        User {{ log.user_id or "Unknown" }}
+                                        {% endif %}
+
+                                        <br>
+
+                                        <small>
+                                            {{ log.ip_address or "" }}
+                                        </small>
+                                    </td>
+
+                                    <!-- USER AGENT -->
+                                    <td>
+                                        {% if log.user_agent %}
+                                        <details>
+                                            <summary>View</summary>
+                                            <div style="
+                white-space: pre-wrap;
+                word-break: break-word;
+                max-width: 600px;
+            ">
+                                                {{ log.user_agent }}
+                                            </div>
+                                        </details>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- DEVICE TYPE -->
+                                    <td>
+                                        {{ log.device_type or "unknown" }}
+                                    </td>
+
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        No activity found.
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+
+
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

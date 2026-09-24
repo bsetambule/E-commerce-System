@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Shop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/shop.css') }}">
+</head>
+
+<body>
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <header class="header">
+
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false"
+                aria-controls="sidebar"><span class="bar"></span><span class="bar"></span><span
+                    class="bar"></span></button>
+            <a href="{{ url_for('customer.shop') }}" class="logo"><img
+                    src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="logo"></a>
+        </div>
+
+
+        <input type="text" name="customer-search" id="customerProductSearch" class="search-input"
+            placeholder="Search for products...">
+
+        <div class="header-actions">
+
+            <a href="{{ url_for('customer.cart') }}" class="icon-btn">Cart</a>
+
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    {{ user_initials }}
+                </button>
+
+                <div class="dropdown-menu" id="profileMenu">
+                    <a href="{{ url_for('customer.orders') }}">Orders</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('customer.shop') }}" class="active">Shop</a>
+            <a href="{{ url_for('customer.cart') }}">Cart</a>
+            <a href="{{ url_for('customer.account') }}">Account</a>
+        </nav>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <main class="main-content">
+
+        <section class="hero">
+            <h1>Grab these amazing deals</h1>
+            <p>Giving you the best anytime anywhere.</p>
+        </section>
+
+        <section class="shop-controls">
+
+            <div class="controls-left">
+                <h2 class="controls-title">Products</h2>
+                <p class="controls-subtitle">Browse items by category and price</p>
+                <span class="items-count">{{ items_count }} items found</span>
+            </div>
+
+            <form id="shopFiltersForm">
+
+                <div class="controls-right">
+
+                    <div class="control">
+                        <label>Category</label>
+                        <select id="categoryFilter" name="category">
+                            <option value="all">All products</option>
+                            <optgroup label="Food">
+                                <option value="Fresh Food">Fresh Food</option>
+                                <option value="Frozen Food">Frozen Food</option>
+                                <option value="Fruits">Fruits</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="control">
+                        <label>Sort</label>
+                        <select id="priceSort" name="sort">
+                            <option value="default">Recommended</option>
+                            <option value="low-high">Low-High</option>
+                            <option value="high-low">High-Low</option>
+                        </select>
+                    </div>
+
+                </div>
+
+            </form>
+
+        </section>
+
+        <section class="shop-section">
+
+            <div class="products-grid">
+
+                {% for product in products %}
+                <article class="product-card">
+                    <a class="product-link" href="{{ url_for('customer.product_detail',product_id=product.id) }}">
+                        <div class="product-image">
+                            {% if product.image %}
+                            <img src="{{ url_for('static',filename='uploads/' ~ product.image) }}"
+                                alt="{{ product.name }}">
+                            {% else %}
+                            <img src="{{ url_for('static',filename='images/logo4.jpeg') }}" alt="{{ product.name }}">
+                            {% endif %}
+                        </div>
+
+                        <div class="product-info">
+                            <span class="product-category">{{ product.category }}</span>
+                            <h3 class="product-name">{{ product.name }}</h3>
+                            <p class="product-price">£{{ "%.2f"|format(product.price) }}</p>
+                        </div>
+                    </a>
+                    {% if product.variant_id %}
+                    <form method="POST" action="{{ url_for('customer.add_to_cart', product_id=product.id) }}"
+                        class="add-cart-form">
+
+                        <input type="hidden" name="variant_id" value="{{ product.variant_id }}">
+
+                        <input type="hidden" name="quantity" value="1">
+
+                        <button type="submit" class="add-cart-btn">
+
+                            Add to Cart
+
+                        </button>
+
+                    </form>
+                    {% else %}
+                    <button class="add-cart-btn" disabled>
+                        Unavailable
+                    </button>
+
+                    {% endif %}
+                </article>
+                {% else %}
+                <div class="no-products">No products found.</div>
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+
+            {% if pagination.has_prev %}
+            <a
+                href="{{ url_for('customer.shop',page=pagination.prev_num,search=search_query,category=category_filter,sort=price_sort) }}">&laquo;</a>
+            {% else %}
+            <span class="disabled">&laquo;</span>
+            {% endif %}
+
+            {% for p in range(1,pagination.pages+1) %}
+            {% if p==pagination.page %}
+            <span class="current">{{ p }}</span>
+            {% else %}
+            <a
+                href="{{ url_for('customer.shop',page=p,search=search_query,category=category_filter,sort=price_sort) }}">{{
+                p }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a
+                href="{{ url_for('customer.shop',page=pagination.next_num,search=search_query,category=category_filter,sort=price_sort) }}">&raquo;</a>
+            {% else %}
+            <span class="disabled">&raquo;</span>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">SetOhil Store</div>
+            <p class="footer-copy">© 2026 All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='scripts/shop.js') }}"></script>
+
+</body>
+
+</html>

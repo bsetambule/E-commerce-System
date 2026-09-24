@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin View Deliveries</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.list_users') }}">Users</a>
+            <a href="{{ url_for('admin.list_stores') }}">Stores</a>
+            <a href="{{ url_for('admin.list_orders') }}">Orders</a>
+            <a href="{{ url_for('admin.deliveries') }}" class="active">Deliveries</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR (mobile only trigger) -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- DELIVERIES SECTION -->
+
+            <section id="deliveriesSection">
+                <div class="card">
+                    <div class="page-header">
+                        <h2>Deliveries</h2>
+                        <br>
+
+                        <div class="tabs">
+
+                            <a href="{{ url_for('admin.deliveries', filter='all') }}"
+                                class="tab-btn {% if current_filter == 'all' %}active{% endif %}">
+                                All
+                            </a>
+
+                            <a href="{{ url_for('admin.deliveries', filter='unassigned') }}"
+                                class="tab-btn {% if current_filter == 'unassigned' %}active{% endif %}">
+                                Unassigned
+                            </a>
+
+                            <a href="{{ url_for('admin.deliveries', filter='assigned') }}"
+                                class="tab-btn {% if current_filter == 'assigned' %}active{% endif %}">
+                                Assigned
+                            </a>
+
+                        </div>
+                    </div>
+                    <br>
+
+                    <input type="text" class="admin-search" id="adminDeliverySearch"
+                        placeholder="Search delivery by ID or name..."
+                        onkeyup="filterTable('adminDeliverySearch', 'adminDeliveryTable')">
+
+                    <div id="noDeliveryResultsMessage" class="no-results">
+                        No deliveries found.
+                    </div>
+                    <br><br>
+                    <div class="table-wrapper">
+                        <table id="adminDeliveryTable" class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Delivery Location</th>
+                                    <th>Courier</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in deliveries.items %}
+                                <tr>
+                                    <td>{{ delivery.order.id }}</td>
+
+                                    <td>
+                                        {{ delivery.order.user.firstname }}
+                                        {{ delivery.order.user.lastname }}
+                                    </td>
+
+                                    <td>{{ delivery.delivery_address }}</td>
+
+                                    <td>
+                                        {% if delivery.courier %}
+                                        {{ delivery.courier.firstname }} {{ delivery.courier.lastname }}
+                                        {% else %}
+                                        Unassigned
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ delivery.status.value }}</td>
+
+                                    <td>
+                                        <a class="viewProfileLink"
+                                            href="{{ url_for('admin.delivery_detail', delivery_id=delivery.id) }}">View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        No deliveries found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </section>
+
+    </main>
+
+
+
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

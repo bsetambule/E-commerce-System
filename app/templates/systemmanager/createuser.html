@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Manager Create User</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+
+            <span class="flash-text">
+                {{ message }}
+            </span>
+
+            <button class="flash-close" type="button">
+                &times;
+            </button>
+
+        </div>
+        {% endfor %}
+
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('systemmanager.dashboard') }}">
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('systemmanager.users') }}" class="active">
+                Users
+            </a>
+
+            <a href="{{ url_for('systemmanager.stores') }}">
+                Stores
+            </a>
+
+            <a href="{{ url_for('systemmanager.activity') }}">
+                Activity
+            </a>
+
+            <a href="{{ url_for('auth.logout') }}">
+                Logout
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+
+        <button id="menuToggle" class="menu-toggle">
+
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+
+        </button>
+
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+
+        <div class="dash-container">
+
+            <!-- PAGE HEADER -->
+            <header class="review-header">
+                <h1>Create New User Account</h1>
+            </header>
+
+            <!-- FORM CARD -->
+            <div class="admin-card">
+
+                <h3>Account Details</h3>
+
+                <form id="createuserForm" method="POST" action="{{ url_for('systemmanager.create_user') }}"
+                    autocomplete="off">
+
+                    <!-- FIRST NAME -->
+                    <input type="text" name="firstName" placeholder="First name" required>
+
+                    <!-- LAST NAME -->
+                    <input type="text" name="lastName" placeholder="Last name" required>
+
+                    <!-- EMAIL -->
+                    <input type="email" name="email" placeholder="Email address" required>
+
+                    <!-- PHONE -->
+                    <div class="phone-group">
+
+                        <select name="countryCode" required>
+                            <option value="+267">
+                                🇧🇼 +267
+                            </option>
+                        </select>
+
+                        <input type="tel" name="phone" placeholder="Phone Number" required minlength="8" maxlength="8"
+                            pattern="7[0-9]{7}">
+
+                    </div>
+
+                    <!-- ROLE -->
+                    <select id="role" name="role" required onchange="toggleBranchField()">
+
+                        <option value="" disabled selected>
+                            --Choose account role--
+                        </option>
+
+                        <option value="PRODUCTMANAGER">
+                            Product Manager
+                        </option>
+
+                        <option value="STOREMANAGER">
+                            Store Manager
+                        </option>
+
+                        <option value="DELIVERYMANAGER">
+                            Delivery Manager
+                        </option>
+
+                        <option value="DELIVERYSUPERVISOR">
+                            Delivery Supervisor
+                        </option>
+
+                        <option value="STAFF">
+                            Staff
+                        </option>
+
+                        <option value="COURIER">
+                            Courier
+                        </option>
+
+                    </select>
+
+                    <!-- BRANCH -->
+                    <div id="branchField" style="display:none;">
+
+                        <select name="branch_id" id="branchSelect">
+
+                            <option value="" disabled selected>
+                                --Assign branch--
+                            </option>
+
+                            {% for branch in branches %}
+                            <option value="{{ branch.id }}">
+                                {{ branch.name }} ({{ branch.city }})
+                            </option>
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="action-buttons">
+
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="createuserForm" data-message="Create this user account?" id="submitBtn">
+
+                            Create Account
+
+                        </button>
+
+                        <button type="button" class="btn danger" onclick="window.history.back()">
+
+                            Cancel
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+
+        <div class="modal-content small">
+
+            <h3 id="confirmText"></h3>
+
+            <div class="modal-actions">
+
+                <button id="confirmYes" type="button" class="btn primary">
+                    Yes
+
+                </button>
+
+                <button id="confirmNo" type="button" class="btn outline">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PAGE SCRIPTS -->
+    <script>
+
+        // ==========================================
+        // TOGGLE BRANCH FIELD
+        // ==========================================
+
+        function toggleBranchField() {
+
+            const role =
+                document.getElementById("role").value;
+
+            const branchField =
+                document.getElementById("branchField");
+
+            const branchSelect =
+                document.getElementById("branchSelect");
+
+            const rolesRequiringBranch = [
+                "STOREMANAGER",
+                "DELIVERYSUPERVISOR",
+                "STAFF"
+            ];
+
+            if (rolesRequiringBranch.includes(role)) {
+
+                branchField.style.display = "block";
+
+                branchSelect.required = true;
+
+            } else {
+
+                branchField.style.display = "none";
+
+                branchSelect.required = false;
+
+                branchSelect.value = "";
+
+            }
+
+        }
+
+    </script>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

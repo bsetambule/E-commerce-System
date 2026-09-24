@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Delivery Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.list_users') }}">Users</a>
+            <a href="{{ url_for('admin.list_stores') }}">Stores</a>
+            <a href="{{ url_for('admin.list_orders') }}">Orders</a>
+            <a href="{{ url_for('admin.deliveries') }}" class="active">Deliveries</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <div>
+                    <h1>Delivery #{{ delivery.id }}</h1>
+                    {% set status = delivery.status.value %}
+
+                    <span class="badge 
+    {% if status == 'delivered' %}success
+    {% elif status == 'cancelled' %}danger
+    {% elif status == 'picked_up' %}warning
+    {% else %}active
+    {% endif %}
+">
+                        {{ status }}
+                    </span>
+                </div>
+            </header>
+
+            <!-- DELIVERY TIMELINE -->
+            <div class="admin-card">
+                <h3>Delivery Timeline</h3>
+
+                <p>Created: {{ delivery.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
+
+                {% if delivery.delivered_at %}
+                <p>Completed: {{ delivery.delivered_at.strftime("%Y-%m-%d %H:%M") }}</p>
+                {% endif %}
+            </div>
+
+            <!-- DELIVERY INFO -->
+            <div class="admin-card">
+                <h3>Delivery Information</h3>
+
+
+                <p><strong>Order #:</strong> {{ delivery.order.id }}</p>
+                <p><strong>Status:</strong> {{ delivery.status.value }}</p>
+                <p><strong>Created:</strong> {{ delivery.created_at.strftime("%Y-%m-%d %H:%M") }}</p>
+                {% if delivery.delivered_at %}
+                <p><strong>Delivered At:</strong> {{ delivery.delivered_at.strftime("%Y-%m-%d %H:%M") }}</p>
+                {% else %}
+                <p><strong>Delivered At:</strong> Not delivered yet</p>
+                {% endif %}
+                <p><strong>Address:</strong> {{ delivery.delivery_address }}</p>
+            </div>
+
+
+            <!-- DELIVERY PROOF -->
+            <div class="admin-card">
+                <h3>Delivery Proof</h3>
+
+                <p><strong>OTP:</strong> Hidden for security{{ delivery.otp_code[-2:] if delivery.otp_code else "N/A" }}
+                </p>
+
+                <p>
+                    <strong>Verified:</strong>
+                    {% if delivery.otp_verified %}
+                    <span class="badge success">Verified</span>
+                    {% else %}
+                    <span class="badge danger">Not Verified</span>
+                    {% endif %}
+                </p>
+
+                {% if delivery.otp_verified_at %}
+                <p><strong>Verified At:</strong> {{ delivery.otp_verified_at }}</p>
+                {% endif %}
+            </div>
+
+            <!-- COURIER -->
+            <div class="admin-card">
+                <h3>Courier</h3>
+
+                {% if delivery.courier %}
+                <p><strong>Name:</strong> {{ delivery.courier.firstname }} {{ delivery.courier.lastname }}</p>
+                <p><strong>Email:</strong> {{ delivery.courier.email }}</p>
+                <p><strong>Phone:</strong> {{ delivery.courier.phone or "N/A" }}</p>
+                {% else %}
+                <p>Unassigned</p>
+                {% endif %}
+            </div>
+
+            <!-- CUSTOMER -->
+            <div class="admin-card">
+                <h3>Customer</h3>
+
+                <p><strong>Name:</strong> {{ delivery.order.user.firstname }} {{ delivery.order.user.lastname }}</p>
+                <p><strong>Email:</strong> {{ delivery.order.user.email }}</p>
+            </div>
+
+            <!-- ITEMS -->
+            <div class="admin-card">
+                <h3>Order Items</h3>
+
+                <div class="items-table">
+                    {% for item in delivery.order.items %}
+                    <div class="item-row">
+                        <span>{{ item.product_name }}</span>
+                        <span>×{{ item.quantity }}</span>
+                        <span>£{{ item.total_price }}</span>
+                    </div>
+                    {% endfor %}
+
+                    <div class="item-total">
+                        Total: <strong>£{{ delivery.order.total_amount }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STORE -->
+            <div class="admin-card">
+                <h3>Store</h3>
+
+                {% if delivery.branch %}
+                <p><strong>Name:</strong> {{ delivery.branch.name }}</p>
+                <p><strong>Address:</strong> {{ delivery.branch.address }}</p>
+                {% else %}
+                <p>No store information</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>

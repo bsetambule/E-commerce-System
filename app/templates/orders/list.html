@@ -1,0 +1,21 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+<h2>Your Orders</h2>
+
+{% for order in orders %}
+
+<div>
+    <p>Order #{{ order.id }}</p>
+    <p>Status: {{ order.status }}</p>
+    <p>Total: {{ order.total_amount }}</p>
+
+    <a href="{{ url_for('orders.view_order', order_id=order.id) }}">
+        View
+    </a>
+</div>
+
+{% endfor %}
+
+{% endblock %}

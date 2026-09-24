@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Create Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+</head>
+
+<body>
+
+    <!-- Flash Message Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <span class="flash-text">{{ message }}</span>
+            <button class="flash-close" type="button">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="dash-logo">
+            <img src="{{ url_for('static', filename='images/logo4.jpeg') }}" alt="SetOhil logo">
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin.list_users') }}">Users</a>
+            <a href="{{ url_for('admin.list_stores') }}" class="active">Stores</a>
+            <a href="{{ url_for('admin.list_orders') }}">Orders</a>
+            <a href="{{ url_for('admin.deliveries') }}">Deliveries</a>
+            <a href="{{ url_for('admin.analytics') }}">Analytics</a>
+            <a href="{{ url_for('admin.activity') }}">Activity</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </aside>
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <button id="menuToggle" class="menu-toggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </header>
+
+    <!-- OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN -->
+    <main class="dash-wrapper">
+        <div class="dash-container">
+
+            <!-- HEADER -->
+            <header class="review-header">
+                <h1>Create New Store</h1>
+            </header>
+
+            <!-- FORM -->
+            <div class="admin-card">
+                <h3>Store Details</h3>
+                <br>
+                <form id="createstoreForm" method="POST" action="{{ url_for('admin.create_store') }}">
+
+                    <!-- STORE NAME -->
+                    <input type="text" name="name" placeholder="Store Name" required>
+
+                    <!-- ADDRESS -->
+                    <input type="text" name="address" placeholder="Store Address" required>
+
+                    <!-- CITY -->
+                    <select id="city" name="city" required>
+                        <option value="" disabled selected>--Choose store location--</option>
+                        <option value="tlokweng">Tlokweng</option>
+                        <option value="block8">Block 8</option>
+                        <option value="mainmall">Main Mall</option>
+                    </select>
+
+
+
+                    <!-- COORDINATES -->
+                    <input type="number" id="latitude" name="latitude" placeholder="Latitude (-90 to 90)" step="any"
+                        min="-90" max="90">
+
+                    <input type="number" id="longitude" name="longitude" placeholder="Longitude (-180 to 180)"
+                        step="any" min="-180" max="180">
+
+                    <!-- DELIVERY OPTION -->
+                    <select name="allowsdelivery" required>
+                        <option value="" disabled selected>--Allows Delivery--</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+
+                    <!-- ACTIONS -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn primary" data-confirm data-action="submit-form"
+                            data-form="createstoreForm" data-message="Create this store?">
+                            Create Store
+                        </button>
+                        <button type="button" class="btn danger" onclick="window.history.back()">Cancel</button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="confirmText"></h3>
+            <div class="modal-actions">
+                <button id="confirmYes" class="btn primary">Yes</button>
+                <button id="confirmNo" class="btn outline">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
+
+</body>
+
+</html>
